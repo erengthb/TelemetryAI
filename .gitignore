@@ -1,0 +1,8 @@
+TelemetryAI.pdf
+TelemetryAI.docx
+
+backend/target
+frontend/node_modules
+.idea
+.vscode
+.DS_Store
