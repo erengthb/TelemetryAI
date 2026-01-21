@@ -9,4 +9,6 @@ public interface ApiKeyRepository extends JpaRepository<ApiKeyEntity, UUID> {
     List<ApiKeyEntity> findByProjectId(UUID projectId);
 
     List<ApiKeyEntity> findByProjectIdAndEnvName(UUID projectId, String envName);
+
+    List<ApiKeyEntity> findByKeyLast4AndRevokedAtIsNull(String keyLast4);
 }

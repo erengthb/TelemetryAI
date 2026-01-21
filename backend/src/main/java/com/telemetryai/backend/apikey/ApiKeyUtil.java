@@ -31,6 +31,27 @@ public final class ApiKeyUtil {
         }
     }
 
+    public static boolean verifyKey(String storedHash, String apiKey) {
+        if (storedHash == null || apiKey == null) {
+            return false;
+        }
+        String[] parts = storedHash.split(":");
+        if (parts.length != 2) {
+            return false;
+        }
+        try {
+            byte[] salt = Base64.getDecoder().decode(parts[0]);
+            byte[] expectedHash = Base64.getDecoder().decode(parts[1]);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(salt);
+            digest.update(apiKey.getBytes(StandardCharsets.UTF_8));
+            byte[] actualHash = digest.digest();
+            return constantTimeEquals(expectedHash, actualHash);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static byte[] newSalt() {
         byte[] salt = new byte[16];
         RANDOM.nextBytes(salt);
@@ -49,5 +70,16 @@ public final class ApiKeyUtil {
             return "****";
         }
         return "****" + last4;
+    }
+
+    private static boolean constantTimeEquals(byte[] a, byte[] b) {
+        if (a == null || b == null || a.length != b.length) {
+            return false;
+        }
+        int result = 0;
+        for (int i = 0; i < a.length; i++) {
+            result |= a[i] ^ b[i];
+        }
+        return result == 0;
     }
 }
