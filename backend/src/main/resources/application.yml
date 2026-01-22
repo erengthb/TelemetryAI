@@ -25,3 +25,9 @@ management:
     web:
       exposure:
         include: health,info
+
+telemetryai:
+  jobs:
+    aggregation:
+      cron: ${AGGREGATION_CRON:0 0 2 * * *}
+      lookbackDays: ${AGGREGATION_LOOKBACK_DAYS:1}
