@@ -182,30 +182,30 @@ public class IngestionService {
         UUID eventId = null;
 
         if (payload == null) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:eventId");
+            reasons.add(ReasonCodes.missingRequired("eventId"));
             return new ValidationResult(null, reasons);
         }
 
         if (payload.getEventId() == null || payload.getEventId().isBlank()) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:eventId");
+            reasons.add(ReasonCodes.missingRequired("eventId"));
         } else {
             eventId = parseUuid(payload.getEventId());
             if (eventId == null) {
-                reasons.add("MISSING_REQUIRED_PROPERTY:eventId");
+                reasons.add(ReasonCodes.missingRequired("eventId"));
             }
         }
 
         if (payload.getTimestampClient() == null || payload.getTimestampClient() <= 0) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:timestampClient");
+            reasons.add(ReasonCodes.missingRequired("timestampClient"));
         }
         if (isBlank(payload.getEventName())) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:eventName");
+            reasons.add(ReasonCodes.missingRequired("eventName"));
         }
         if (isBlank(payload.getSessionId())) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:sessionId");
+            reasons.add(ReasonCodes.missingRequired("sessionId"));
         }
         if (isBlank(payload.getPlayerId())) {
-            reasons.add("MISSING_REQUIRED_PROPERTY:playerId");
+            reasons.add(ReasonCodes.missingRequired("playerId"));
         }
 
         checkStringLength("eventName", payload.getEventName(), reasons);
@@ -216,7 +216,7 @@ public class IngestionService {
 
         SchemaIndex.EventSchema eventSchema = schemaIndex.getEvent(payload.getEventName());
         if (eventSchema == null) {
-            reasons.add("EVENT_NOT_IN_SCHEMA");
+            reasons.add(ReasonCodes.EVENT_NOT_IN_SCHEMA);
             return new ValidationResult(eventId, reasons);
         }
 
@@ -224,17 +224,17 @@ public class IngestionService {
         if (properties == null || properties.isNull()) {
             properties = objectMapper.createObjectNode();
         } else if (!properties.isObject()) {
-            reasons.add("TYPE_MISMATCH:properties");
+            reasons.add(ReasonCodes.typeMismatch("properties"));
             return new ValidationResult(eventId, reasons);
         }
 
         try {
             byte[] propertiesBytes = objectMapper.writeValueAsBytes(properties);
             if (propertiesBytes.length > MAX_PROPERTIES_BYTES) {
-                reasons.add("PAYLOAD_TOO_LARGE");
+                reasons.add(ReasonCodes.PAYLOAD_TOO_LARGE);
             }
         } catch (Exception e) {
-            reasons.add("PAYLOAD_TOO_LARGE");
+            reasons.add(ReasonCodes.PAYLOAD_TOO_LARGE);
         }
 
         var propertyFields = properties.fields();
@@ -249,25 +249,25 @@ public class IngestionService {
             JsonNode value = payloadProps.get(key.toLowerCase());
             if (value == null || value.isNull()) {
                 if (propertySchema.isRequired()) {
-                    reasons.add("MISSING_REQUIRED_PROPERTY:" + key);
+                    reasons.add(ReasonCodes.missingRequired(key));
                 }
                 continue;
             }
 
             if (!typeMatches(propertySchema.getType(), value)) {
-                reasons.add("TYPE_MISMATCH:" + key);
+                reasons.add(ReasonCodes.typeMismatch(key));
                 continue;
             }
 
             if (!propertySchema.getAllowed().isEmpty()) {
                 String valueText = value.asText();
                 if (!propertySchema.getAllowed().contains(valueText)) {
-                    reasons.add("ALLOWED_VIOLATION:" + key);
+                    reasons.add(ReasonCodes.allowedViolation(key));
                 }
             }
 
             if (value.isTextual() && value.textValue().length() > MAX_STRING_LENGTH) {
-                reasons.add("FIELD_TOO_LONG:" + key);
+                reasons.add(ReasonCodes.fieldTooLong(key));
             }
         }
 
@@ -276,12 +276,12 @@ public class IngestionService {
             var entry = originalFields.next();
             String key = entry.getKey();
             if (!eventSchema.getProperties().containsKey(key.toLowerCase())) {
-                reasons.add("TYPE_MISMATCH:" + key);
+                reasons.add(ReasonCodes.typeMismatch(key));
             }
         }
 
         if (PiiDetector.containsPii(properties)) {
-            reasons.add("PII_DETECTED");
+            reasons.add(ReasonCodes.PII_DETECTED);
         }
 
         return new ValidationResult(eventId, reasons);
@@ -397,7 +397,7 @@ public class IngestionService {
 
     private void checkStringLength(String field, String value, List<String> reasons) {
         if (value != null && value.length() > MAX_STRING_LENGTH) {
-            reasons.add("FIELD_TOO_LONG:" + field);
+            reasons.add(ReasonCodes.fieldTooLong(field));
         }
     }
 
