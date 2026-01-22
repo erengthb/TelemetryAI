@@ -1,6 +1,3 @@
-server:
-  port: 8080
-
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/telemetryai}
@@ -31,3 +28,12 @@ telemetryai:
     aggregation:
       cron: ${AGGREGATION_CRON:0 0 2 * * *}
       lookbackDays: ${AGGREGATION_LOOKBACK_DAYS:1}
+    ai:
+      dailyCron: ${AI_DAILY_CRON:0 0 3 * * *}
+      weeklyCron: ${AI_WEEKLY_CRON:0 0 4 * * MON}
+      lookbackDays: ${AI_LOOKBACK_DAYS:1}
+
+openai:
+  apiKey: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:oai-5.2}
+  temperature: ${OPENAI_TEMPERATURE:0.2}

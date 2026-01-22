@@ -23,6 +23,9 @@ public class ProjectEntity {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "ai_explanation")
+    private String aiExplanation;
+
     public UUID getId() {
         return id;
     }
@@ -53,5 +56,13 @@ public class ProjectEntity {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAiExplanation() {
+        return aiExplanation;
+    }
+
+    public void setAiExplanation(String aiExplanation) {
+        this.aiExplanation = aiExplanation;
     }
 }
