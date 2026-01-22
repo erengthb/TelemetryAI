@@ -1,4 +1,29 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api";
+import { setToken } from "../api/auth";
+
 export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.login({ email, password });
+      setToken(response.token);
+      navigate("/");
+    } catch (err) {
+      setError("Giris basarisiz. Bilgileri kontrol et.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-hero">
@@ -29,7 +54,7 @@ export default function Login() {
           </div>
         </div>
         <div className="auth-footer">
-          <span className="pill outline">UAT</span>
+          <span className="pill outline">Test</span>
           <span>Surum: 20.14</span>
         </div>
       </div>
@@ -41,23 +66,34 @@ export default function Login() {
         <form className="auth-form">
           <label>
             E-posta
-            <input type="email" placeholder="name@telemetryai.dev" />
+            <input
+              type="email"
+              placeholder="name@telemetryai.dev"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
           </label>
           <label>
             Erisim anahtari
-            <input type="password" placeholder="****************" />
+            <input
+              type="password"
+              placeholder="****************"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </label>
           <label className="checkbox">
             <input type="checkbox" defaultChecked />
             Bu cihazi hatirla
           </label>
-          <button type="button" className="btn primary">
-            Kontrol guvertesine gir
+          <button type="button" className="btn primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Baglaniyor..." : "Kontrol guvertesine gir"}
           </button>
           <button type="button" className="btn ghost">
             Erisim iste
           </button>
         </form>
+        {error ? <div className="auth-note">{error}</div> : null}
         <div className="auth-note">
           Devam ederek guvenlik politikasini kabul edersin.
         </div>

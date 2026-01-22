@@ -17,7 +17,7 @@ export default function Settings() {
               Varsayilan ortam
               <select>
                 <option>Gelistirme</option>
-                <option>UAT</option>
+                <option>Test</option>
                 <option>Uretim</option>
               </select>
             </label>

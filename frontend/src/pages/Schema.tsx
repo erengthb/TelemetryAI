@@ -1,37 +1,6 @@
-import Tag from "../components/Tag";
-
-const fields = [
-  {
-    name: "olay_adi",
-    type: "metin",
-    policy: "guvenli",
-    note: "Kilitli",
-  },
-  {
-    name: "oyuncu_id",
-    type: "metin",
-    policy: "kisisel",
-    note: "Alimdan once hashle",
-  },
-  {
-    name: "oturum_id",
-    type: "metin",
-    policy: "guvenli",
-    note: "UUIDv7",
-  },
-  {
-    name: "cuzdan_adresi",
-    type: "metin",
-    policy: "kisisel",
-    note: "Analiz icin maskele",
-  },
-  {
-    name: "cihaz_parmak_izi",
-    type: "metin",
-    policy: "risk",
-    note: "Yeni ise karantina",
-  },
-];
+import { useEffect, useState } from "react";
+import { api } from "../api";
+import { ProjectResponse } from "../api/types";
 
 const samplePayload = `{
   "olay_adi": "mac_baslangic",
@@ -43,46 +12,137 @@ const samplePayload = `{
 }`;
 
 export default function Schema() {
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [schema, setSchema] = useState<unknown | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const projectList = await api.listProjects();
+        if (!active) {
+          return;
+        }
+        setProjects(projectList);
+        if (projectList.length > 0) {
+          setSelectedProjectId(projectList[0].id);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Projeler alinamadi.");
+          setLoading(false);
+        }
+      }
+    };
+    loadProjects();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      return;
+    }
+    let active = true;
+    const loadSchema = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const current = await api.getSchemaCurrent(selectedProjectId);
+        if (active) {
+          setSchema(current);
+        }
+      } catch (err) {
+        if (active) {
+          setSchema(null);
+          setError("Sema alinamadi.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    loadSchema();
+    return () => {
+      active = false;
+    };
+  }, [selectedProjectId]);
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedProjectId) {
+      return;
+    }
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const result = await api.importSchema(selectedProjectId, parsed);
+      setSchema(result);
+      setError(null);
+    } catch (err) {
+      setError("Sema import basarisiz.");
+    }
+  };
+
+  const handleExport = async () => {
+    if (!selectedProjectId) {
+      return;
+    }
+    try {
+      const exported = await api.exportSchema(selectedProjectId);
+      const blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "schema.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError("Sema export basarisiz.");
+    }
+  };
+
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h2>Sema Laboratuvari</h2>
-          <p>Veri paketi yapisini tasarla ve kisisel veri koruma kurallarini uygula.</p>
+          <p>Sema import/export ve kisisel veri koruma kurallari.</p>
         </div>
-        <button className="btn primary">Guncelleme oner</button>
+        <button className="btn primary" onClick={handleExport}>
+          Sema export
+        </button>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-title">Alan politika haritasi</div>
-          <div className="table">
-            <div className="table-row head cols-4">
-              <span>Alan</span>
-              <span>Tip</span>
-              <span>Politika</span>
-              <span>Not</span>
-            </div>
-            {fields.map((field) => (
-              <div key={field.name} className="table-row cols-4">
-                <span className="mono">{field.name}</span>
-                <span>{field.type}</span>
-                <span>
-                  <Tag
-                    tone={
-                      field.policy === "guvenli"
-                        ? "safe"
-                        : field.policy === "kisisel"
-                        ? "warn"
-                        : "risk"
-                    }
-                  >
-                    {field.policy}
-                  </Tag>
-                </span>
-                <span>{field.note}</span>
-              </div>
-            ))}
+          <div className="card-title">Sema secimi</div>
+          <div className="form-stack">
+            <label>
+              Proje
+              <select
+                value={selectedProjectId}
+                onChange={(event) => setSelectedProjectId(event.target.value)}
+              >
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Sema import
+              <input type="file" accept="application/json" onChange={handleImport} />
+            </label>
+            {error ? <div className="helper">{error}</div> : null}
           </div>
         </div>
 
@@ -94,33 +154,21 @@ export default function Schema() {
           <pre className="code-block">{samplePayload}</pre>
           <div className="schema-actions">
             <button className="btn ghost small">Dogrulama calistir</button>
-            <button className="btn ghost small">JSON disari aktar</button>
+            <button className="btn ghost small" onClick={handleExport}>
+              JSON disari aktar
+            </button>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <div className="card-title">Sema degisim gunlugu</div>
-        <div className="timeline">
-          <div className="timeline-item">
-            <div className="timeline-time">2 saat once</div>
-            <div className="timeline-body">
-              <span className="mono">bolge</span> alani guvenli politikayla eklendi.
-            </div>
-          </div>
-          <div className="timeline-item">
-            <div className="timeline-time">Dun</div>
-            <div className="timeline-body">
-              <span className="mono">cuzdan_adresi</span> maskeleme kurali guncellendi.
-            </div>
-          </div>
-          <div className="timeline-item">
-            <div className="timeline-time">3 gun once</div>
-            <div className="timeline-body">
-              Kullanimdan kaldirilan <span className="mono">istemci_ip</span> alani kaldirildi.
-            </div>
-          </div>
+        <div className="card-title">Guncel sema</div>
+        <div className="card-subtitle">
+          {loading ? "Yukleniyor..." : "Backend'den cekilen sema."}
         </div>
+        <pre className="code-block">
+          {schema ? JSON.stringify(schema, null, 2) : "Sema verisi yok."}
+        </pre>
       </div>
     </div>
   );

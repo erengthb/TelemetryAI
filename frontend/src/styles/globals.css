@@ -547,6 +547,14 @@ select {
   border-bottom: 1px solid var(--border-soft);
 }
 
+.table-row[role="button"] {
+  cursor: pointer;
+}
+
+.table-row[role="button"]:hover {
+  background: rgba(66, 215, 176, 0.08);
+}
+
 .table-row.head {
   font-size: 12px;
   text-transform: uppercase;

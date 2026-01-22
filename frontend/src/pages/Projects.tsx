@@ -1,45 +1,67 @@
+import { useEffect, useState } from "react";
 import Tag from "../components/Tag";
-
-const projects = [
-  {
-    name: "Aurora Operasyon",
-    env: "UAT",
-    status: "Canli",
-    events: "18.2M",
-    drift: "0.6%",
-    keys: "6",
-    note: "12.4 yamasi sonrasi gecikme azaltildi",
-  },
-  {
-    name: "Orbit Cuzdan",
-    env: "Uretim",
-    status: "Korumali",
-    events: "9.4M",
-    drift: "1.4%",
-    keys: "4",
-    note: "Ilk kayit veri paketinde kisisel veri bulundu",
-  },
-  {
-    name: "Helix Oyunlar",
-    env: "UAT",
-    status: "Canli",
-    events: "6.1M",
-    drift: "0.2%",
-    keys: "3",
-    note: "Sezon lansmani icin sema kilitli",
-  },
-  {
-    name: "Nova Perakende",
-    env: "Gelistirme",
-    status: "Duraklatildi",
-    events: "1.9M",
-    drift: "2.8%",
-    keys: "2",
-    note: "Alan beyaz listesi onay bekliyor",
-  },
-];
+import { api } from "../api";
+import { OrgResponse, ProjectResponse } from "../api/types";
+import { formatDateShort } from "../utils/format";
 
 export default function Projects() {
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [orgs, setOrgs] = useState<OrgResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("");
+  const [orgId, setOrgId] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [orgList, projectList] = await Promise.all([
+          api.listOrgs(),
+          api.listProjects(),
+        ]);
+        if (!active) {
+          return;
+        }
+        setOrgs(orgList);
+        setProjects(projectList);
+        if (!orgId && orgList.length > 0) {
+          setOrgId(orgList[0].id);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Projeler yuklenemedi. Backend calismiyor olabilir.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleCreate = async () => {
+    if (!orgId || !projectName.trim()) {
+      setError("Org ve proje adi gerekli.");
+      return;
+    }
+    setError(null);
+    try {
+      const created = await api.createProject({ orgId, name: projectName.trim() });
+      setProjects((prev) => [created, ...prev]);
+      setProjectName("");
+    } catch (err) {
+      setError("Proje olusturulamadi.");
+    }
+  };
+
   return (
     <div className="page">
       <div className="page-header">
@@ -47,49 +69,78 @@ export default function Projects() {
           <h2>Projeler</h2>
           <p>Her proje icin hat, sema politikasi ve erisim anahtarlarini yonet.</p>
         </div>
-        <button className="btn primary">Yeni proje</button>
+        <button className="btn primary" onClick={handleCreate}>
+          Yeni proje
+        </button>
+      </div>
+      <div className="card">
+        <div className="card-title">Proje olustur</div>
+        <div className="form-stack">
+          <label>
+            Org
+            <select value={orgId} onChange={(event) => setOrgId(event.target.value)}>
+              {orgs.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Proje adi
+            <input
+              type="text"
+              placeholder="ornek: nova-game"
+              value={projectName}
+              onChange={(event) => setProjectName(event.target.value)}
+            />
+          </label>
+          <button className="btn primary" onClick={handleCreate}>
+            Proje olustur
+          </button>
+          {error ? <div className="helper">{error}</div> : null}
+        </div>
       </div>
       <div className="card-grid">
-        {projects.map((project) => (
-          <div key={project.name} className="card project-card">
+        {loading ? (
+          <div className="card">
+            <div className="card-title">Yukleniyor...</div>
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="card">
+            <div className="card-title">Proje yok</div>
+            <div className="card-subtitle">Ilk projeyi olusturarak basla.</div>
+          </div>
+        ) : (
+          projects.map((project) => (
+          <div key={project.id} className="card project-card">
             <div className="project-header">
               <div>
                 <div className="project-title">{project.name}</div>
-                <div className="project-env">{project.env}</div>
+                <div className="project-env">{formatDateShort(project.createdAt)}</div>
               </div>
-              <Tag
-                tone={
-                  project.status === "Canli"
-                    ? "safe"
-                    : project.status === "Korumali"
-                    ? "warn"
-                    : "risk"
-                }
-              >
-                {project.status}
-              </Tag>
+              <Tag tone="info">Aktif</Tag>
             </div>
             <div className="project-metrics">
               <div>
-                <div className="metric-value">{project.events}</div>
-                <div className="metric-label">bu ayki olaylar</div>
+                <div className="metric-value">-</div>
+                <div className="metric-label">olaylar</div>
               </div>
               <div>
-                <div className="metric-value">{project.drift}</div>
+                <div className="metric-value">-</div>
                 <div className="metric-label">sema sapmasi</div>
               </div>
               <div>
-                <div className="metric-value">{project.keys}</div>
-                <div className="metric-label">aktif anahtarlar</div>
+                <div className="metric-value">-</div>
+                <div className="metric-label">anahtarlar</div>
               </div>
             </div>
-            <div className="project-note">{project.note}</div>
             <div className="project-actions">
-              <button className="btn ghost small">Paneli ac</button>
-              <button className="btn ghost small">Anahtarlari dondur</button>
+              <button className="btn ghost small">Detaylar</button>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   );

@@ -1,116 +1,227 @@
+import { useEffect, useState } from "react";
 import Tag from "../components/Tag";
-
-const keys = [
-  {
-    name: "Aurora Operasyon - alim",
-    last4: "4812",
-    scope: "Alim + Okuma",
-    usage: "2.9M cagri",
-    limit: "30k/dk",
-    created: "2026-01-12",
-    status: "Aktif",
-    mask: "7Q3M-9T2Q-****-4812",
-  },
-  {
-    name: "Orbit Cuzdan - uc",
-    last4: "9021",
-    scope: "Alim",
-    usage: "1.1M cagri",
-    limit: "18k/dk",
-    created: "2026-01-08",
-    status: "Aktif",
-    mask: "9B1X-8LPQ-****-9021",
-  },
-  {
-    name: "Helix Oyunlar - toplu",
-    last4: "4410",
-    scope: "Sadece okuma",
-    usage: "412k cagri",
-    limit: "8k/dk",
-    created: "2025-12-22",
-    status: "Rotasyonda",
-    mask: "2K8V-4Z1J-****-4410",
-  },
-];
+import { api } from "../api";
+import { ApiKeyCreateResponse, ApiKeyResponse, EnvironmentResponse, ProjectResponse } from "../api/types";
+import { formatDateShort, formatEnvLabel } from "../utils/format";
 
 export default function ApiKeys() {
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [envs, setEnvs] = useState<EnvironmentResponse[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedEnv, setSelectedEnv] = useState("");
+  const [keys, setKeys] = useState<ApiKeyResponse[]>([]);
+  const [createdKey, setCreatedKey] = useState<ApiKeyCreateResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const projectList = await api.listProjects();
+        if (!active) {
+          return;
+        }
+        setProjects(projectList);
+        if (projectList.length > 0) {
+          setSelectedProjectId(projectList[0].id);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Projeler alinamadi.");
+          setLoading(false);
+        }
+      }
+    };
+    loadProjects();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      return;
+    }
+    let active = true;
+    const loadEnvs = async () => {
+      try {
+        const envList = await api.listEnvironments(selectedProjectId);
+        if (!active) {
+          return;
+        }
+        setEnvs(envList);
+        if (envList.length > 0) {
+          setSelectedEnv(envList[0].envName);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Ortamlar alinamadi.");
+        }
+      }
+    };
+    loadEnvs();
+    return () => {
+      active = false;
+    };
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    if (!selectedProjectId || !selectedEnv) {
+      return;
+    }
+    let active = true;
+    const loadKeys = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const list = await api.listApiKeys(selectedProjectId, selectedEnv);
+        if (!active) {
+          return;
+        }
+        setKeys(list);
+      } catch (err) {
+        if (active) {
+          setError("Anahtarlar alinamadi.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    loadKeys();
+    return () => {
+      active = false;
+    };
+  }, [selectedProjectId, selectedEnv]);
+
+  const handleRotate = async () => {
+    if (!selectedProjectId || !selectedEnv) {
+      setError("Proje ve ortam sec.");
+      return;
+    }
+    setError(null);
+    try {
+      const created = await api.rotateApiKey(selectedProjectId, selectedEnv);
+      setCreatedKey(created);
+      const list = await api.listApiKeys(selectedProjectId, selectedEnv);
+      setKeys(list);
+    } catch (err) {
+      setError("Anahtar uretilmedi.");
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!createdKey?.apiKey) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(createdKey.apiKey);
+    } catch (err) {
+      setError("Kopyalama basarisiz.");
+    }
+  };
+
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h2>API Anahtarlari</h2>
-          <p>Proje anahtarlari, rotasyon ve hiz limitlerini yonet.</p>
+          <p>Proje anahtarlari ve ortama gore erisim yonetimi.</p>
         </div>
-        <button className="btn primary">Anahtar olustur</button>
+        <button className="btn primary" onClick={handleRotate}>
+          Anahtar uret
+        </button>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-title">Aktif anahtarlar</div>
+          <div className="card-title">Anahtarlar</div>
+          <div className="form-stack">
+            <label>
+              Proje
+              <select
+                value={selectedProjectId}
+                onChange={(event) => setSelectedProjectId(event.target.value)}
+              >
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Ortam
+              <select value={selectedEnv} onChange={(event) => setSelectedEnv(event.target.value)}>
+                {envs.map((env) => (
+                  <option key={env.id} value={env.envName}>
+                    {formatEnvLabel(env.envName)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="table">
-            <div className="table-row head">
-              <span>Ad</span>
+            <div className="table-row head cols-5">
               <span>Maske</span>
-              <span>Kapsam</span>
-              <span>Kullanim</span>
-              <span>Limit</span>
+              <span>Ortam</span>
               <span>Durum</span>
+              <span>Olusma</span>
+              <span>Iptal</span>
             </div>
-            {keys.map((key) => (
-              <div key={key.name} className="table-row">
-                <span>
-                  <div className="list-title">{key.name}</div>
-                  <div className="list-subtitle">{key.created}</div>
-                </span>
-                <span className="mono">{key.mask}</span>
-                <span>{key.scope}</span>
-                <span>{key.usage}</span>
-                <span>{key.limit}</span>
-                <span>
-                  <Tag tone={key.status === "Aktif" ? "safe" : "warn"}>
-                    {key.status}
-                  </Tag>
-                </span>
+            {loading ? (
+              <div className="table-row cols-5">
+                <span>Yukleniyor...</span>
               </div>
-            ))}
+            ) : keys.length === 0 ? (
+              <div className="table-row cols-5">
+                <span>Anahtar bulunamadi.</span>
+              </div>
+            ) : (
+              keys.map((key) => (
+                <div key={key.id} className="table-row cols-5">
+                  <span className="mono">{key.maskedKey}</span>
+                  <span>{formatEnvLabel(key.envName)}</span>
+                  <span>
+                    <Tag tone={key.status === "active" ? "safe" : "warn"}>
+                      {key.status === "active" ? "aktif" : "iptal"}
+                    </Tag>
+                  </span>
+                  <span>{formatDateShort(key.createdAt)}</span>
+                  <span>{formatDateShort(key.revokedAt)}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         <div className="card">
-          <div className="card-title">Anahtar sinirlari</div>
-          <div className="card-subtitle">
-            Kesinti olmadan gizli anahtarlari dondur.
-          </div>
-          <div className="form-stack">
-            <label>
-              Proje
-              <select>
-                <option>Aurora Operasyon</option>
-                <option>Orbit Cuzdan</option>
-                <option>Helix Oyunlar</option>
-              </select>
-            </label>
-            <label>
-              Kapsam
-              <select>
-                <option>Alim + Okuma</option>
-                <option>Sadece alim</option>
-                <option>Sadece okuma</option>
-              </select>
-            </label>
-            <label>
-              Hiz limiti
-              <input type="text" placeholder="30000" />
-            </label>
-            <label>
-              Rotasyon suresi
-              <input type="text" placeholder="7 gun" />
-            </label>
-            <button className="btn primary">Anahtar uret</button>
-            <div className="helper">
-              Son4 gosterim icin saklanir; tam anahtar sadece bir kez gosterilir.
+          <div className="card-title">Yeni anahtar</div>
+          <div className="card-subtitle">Anahtar sadece bir kez gosterilir.</div>
+          {createdKey ? (
+            <div className="form-stack">
+              <label>
+                Ortam
+                <input type="text" value={formatEnvLabel(createdKey.envName)} readOnly />
+              </label>
+              <label>
+                Anahtar
+                <input type="text" value={createdKey.apiKey} readOnly />
+              </label>
+              <button className="btn ghost" onClick={handleCopy}>
+                Kopyala
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="helper">
+              Anahtar uretmek icin "Anahtar uret" butonunu kullan.
+            </div>
+          )}
+          {error ? <div className="helper">{error}</div> : null}
         </div>
       </div>
     </div>

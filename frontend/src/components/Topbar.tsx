@@ -5,7 +5,7 @@ export default function Topbar() {
     <header className="topbar">
       <div className="topbar-left">
         <div className="topbar-title">
-          <span className="pill outline">UAT</span>
+          <span className="pill outline">Test</span>
           <span className="topbar-title-text">Canli Telemetri Ozeti</span>
         </div>
         <div className="search">

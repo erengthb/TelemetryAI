@@ -2,11 +2,11 @@ import { NavLink } from "react-router-dom";
 import Icon, { type IconName } from "./Icon";
 
 const navItems: { to: string; label: string; icon: IconName }[] = [
-  { to: "/", label: "Ana", icon: "dashboard" },
+  { to: "/", label: "Genel", icon: "dashboard" },
   { to: "/projects", label: "Projeler", icon: "projects" },
   { to: "/api-keys", label: "Anahtarlar", icon: "api-keys" },
   { to: "/quarantine", label: "Risk", icon: "quarantine" },
-  { to: "/reports", label: "Raporlar", icon: "reports" },
+  { to: "/reports", label: "YZ Raporlari", icon: "reports" },
 ];
 
 export default function BottomNav() {

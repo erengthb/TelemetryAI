@@ -2,12 +2,12 @@ import { NavLink } from "react-router-dom";
 import Icon, { type IconName } from "./Icon";
 
 const navItems: { to: string; label: string; icon: IconName }[] = [
-  { to: "/", label: "Komuta", icon: "dashboard" },
+  { to: "/", label: "Genel Bakis", icon: "dashboard" },
   { to: "/projects", label: "Projeler", icon: "projects" },
   { to: "/api-keys", label: "API Anahtarlari", icon: "api-keys" },
   { to: "/schema", label: "Sema Laboratuvari", icon: "schema" },
   { to: "/quarantine", label: "Karantina", icon: "quarantine" },
-  { to: "/reports", label: "Raporlar", icon: "reports" },
+  { to: "/reports", label: "Yapay Zeka Raporlari", icon: "reports" },
   { to: "/settings", label: "Ayarlar", icon: "settings" },
 ];
 
@@ -43,7 +43,7 @@ export default function Sidebar() {
         <div className="sidebar-label">Sistem Nabzi</div>
         <div className="pulse-card">
           <div>
-            <div className="pulse-title">UAT Kumesi</div>
+            <div className="pulse-title">Test Kumesi</div>
             <div className="pulse-subtitle">Saglikli - 99.98%</div>
           </div>
           <div className="pulse-dot" />

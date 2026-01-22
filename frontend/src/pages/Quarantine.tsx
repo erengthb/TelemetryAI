@@ -1,132 +1,235 @@
+import { useEffect, useState } from "react";
+import { api } from "../api";
+import {
+  EnvironmentResponse,
+  ProjectResponse,
+  QuarantineItemResponse,
+} from "../api/types";
+import { formatDateShort, formatEnvLabel } from "../utils/format";
 import Tag from "../components/Tag";
-import ProgressBar from "../components/ProgressBar";
 
-const incidents = [
-  {
-    id: "Q-192",
-    project: "Aurora Operasyon",
-    reason: "kisisel veri parmak izi tespit edildi",
-    severity: "yuksek",
-    status: "Beklet",
-    time: "2dk once",
-  },
-  {
-    id: "Q-193",
-    project: "Helix Oyunlar",
-    reason: "Sema alani kaldirildi",
-    severity: "orta",
-    status: "Incele",
-    time: "8dk once",
-  },
-  {
-    id: "Q-194",
-    project: "Orbit Cuzdan",
-    reason: "Veri paketi boyutu sicradi",
-    severity: "orta",
-    status: "Beklet",
-    time: "12dk once",
-  },
-  {
-    id: "Q-195",
-    project: "Nova Perakende",
-    reason: "Bilinmeyen cihaz parmak izi",
-    severity: "yuksek",
-    status: "Yukseltildi",
-    time: "21dk once",
-  },
+const ranges = [
+  { label: "7 gun", value: "7d" },
+  { label: "30 gun", value: "30d" },
 ];
 
 export default function Quarantine() {
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [envs, setEnvs] = useState<EnvironmentResponse[]>([]);
+  const [projectId, setProjectId] = useState("");
+  const [envName, setEnvName] = useState("");
+  const [range, setRange] = useState("7d");
+  const [items, setItems] = useState<QuarantineItemResponse[]>([]);
+  const [selected, setSelected] = useState<QuarantineItemResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const projectList = await api.listProjects();
+        if (!active) {
+          return;
+        }
+        setProjects(projectList);
+        if (projectList.length > 0) {
+          setProjectId(projectList[0].id);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Projeler alinamadi.");
+          setLoading(false);
+        }
+      }
+    };
+    loadProjects();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!projectId) {
+      return;
+    }
+    let active = true;
+    const loadEnvs = async () => {
+      try {
+        const envList = await api.listEnvironments(projectId);
+        if (!active) {
+          return;
+        }
+        setEnvs(envList);
+        if (envList.length > 0) {
+          setEnvName(envList[0].envName);
+        }
+      } catch (err) {
+        if (active) {
+          setError("Ortamlar alinamadi.");
+        }
+      }
+    };
+    loadEnvs();
+    return () => {
+      active = false;
+    };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId || !envName) {
+      return;
+    }
+    let active = true;
+    const loadItems = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.listQuarantine(projectId, envName, range);
+        if (!active) {
+          return;
+        }
+        setItems(response.items);
+        setSelected(response.items[0] ?? null);
+      } catch (err) {
+        if (active) {
+          setError("Karantina verisi alinamadi.");
+          setItems([]);
+          setSelected(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    loadItems();
+    return () => {
+      active = false;
+    };
+  }, [projectId, envName, range]);
+
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h2>Karantina</h2>
-          <p>Supheli veri paketlerini incele ve korumalari uygula.</p>
+          <p>Supheli veri paketlerini incele ve nedenlerini gor.</p>
         </div>
-        <button className="btn primary">Guvenli olanlari coz</button>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-title">Risk kuyrugu</div>
-          <div className="table">
-            <div className="table-row head">
-              <span>ID</span>
-              <span>Proje</span>
-              <span>Neden</span>
-              <span>Seviye</span>
-              <span>Durum</span>
-              <span>Zaman</span>
+          <div className="card-title">Filtreler</div>
+          <div className="form-stack">
+            <label>
+              Proje
+              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Ortam
+              <select value={envName} onChange={(event) => setEnvName(event.target.value)}>
+                {envs.map((env) => (
+                  <option key={env.id} value={env.envName}>
+                    {formatEnvLabel(env.envName)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="hero-actions">
+              {ranges.map((item) => (
+                <button
+                  key={item.value}
+                  className={`btn ${range === item.value ? "primary" : "ghost"}`}
+                  onClick={() => setRange(item.value)}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-            {incidents.map((incident) => (
-              <div key={incident.id} className="table-row">
-                <span className="mono">{incident.id}</span>
-                <span>{incident.project}</span>
-                <span>{incident.reason}</span>
-                <span>
-                  <Tag
-                    tone={incident.severity === "yuksek" ? "risk" : "warn"}
-                  >
-                    {incident.severity}
-                  </Tag>
-                </span>
-                <span>{incident.status}</span>
-                <span>{incident.time}</span>
-              </div>
-            ))}
+            {error ? <div className="helper">{error}</div> : null}
           </div>
         </div>
-
         <div className="card">
-          <div className="card-title">Otomatik yanit kurallari</div>
+          <div className="card-title">Secili olay</div>
           <div className="card-subtitle">
-            Yapay Zeka, esikler asildiginda aksiyon alir.
+            {selected ? selected.eventName : "Olay secilmedi."}
           </div>
-          <div className="rule-list">
-            <div className="rule-item">
+          <div className="list">
+            <div className="list-item">
               <div>
-                <div className="rule-title">Kisisel veri parmak izi guveni</div>
-                <div className="rule-subtitle">0.78 uzeri engelle</div>
+                <div className="list-title">Ortam</div>
+                <div className="list-subtitle">{formatEnvLabel(selected?.envName)}</div>
               </div>
-              <ProgressBar value={78} tone="red" />
+              <div>
+                <div className="list-title">Zaman</div>
+                <div className="list-subtitle">{formatDateShort(selected?.receivedAt)}</div>
+              </div>
             </div>
-            <div className="rule-item">
+            <div className="list-item">
               <div>
-                <div className="rule-title">Sema sapma deltasi</div>
-                <div className="rule-subtitle">1.2% uzeri karantina</div>
+                <div className="list-title">Nedenler</div>
+                <div className="list-subtitle">
+                  {selected?.reasons?.length ? selected.reasons.join(", ") : "-"}
+                </div>
               </div>
-              <ProgressBar value={62} tone="amber" />
-            </div>
-            <div className="rule-item">
-              <div>
-                <div className="rule-title">Veri paketi boyut anomalligi</div>
-                <div className="rule-subtitle">1.6x uzeri kis</div>
-              </div>
-              <ProgressBar value={54} tone="teal" />
+              <Tag tone="warn">inceleniyor</Tag>
             </div>
           </div>
-          <button className="btn ghost small">Kurallari duzenle</button>
         </div>
       </div>
 
       <div className="card">
-        <div className="card-title">Canli veri paketi goruntusu</div>
-        <div className="card-subtitle">
-          Karantinaya alinmis bir olayin temizlenmis gorunumu.
+        <div className="card-title">Karantina listesi</div>
+        <div className="table">
+          <div className="table-row head cols-5">
+            <span>ID</span>
+            <span>Olay</span>
+            <span>Ortam</span>
+            <span>Neden</span>
+            <span>Zaman</span>
+          </div>
+          {loading ? (
+            <div className="table-row cols-5">
+              <span>Yukleniyor...</span>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="table-row cols-5">
+              <span>Kayit yok.</span>
+            </div>
+          ) : (
+            items.map((item) => (
+              <div
+                key={item.id}
+                className="table-row cols-5"
+                onClick={() => setSelected(item)}
+                role="button"
+              >
+                <span className="mono">{item.id}</span>
+                <span>{item.eventName}</span>
+                <span>{formatEnvLabel(item.envName)}</span>
+                <span>{item.reasons?.[0] ?? "-"}</span>
+                <span>{formatDateShort(item.receivedAt)}</span>
+              </div>
+            ))
+          )}
         </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Ham veri</div>
         <pre className="code-block">
-{`{
-  "olay_adi": "odeme_gonder",
-  "proje": "Orbit Cuzdan",
-  "risk_puani": 0.86,
-  "nedenler": ["kisisel_veri_parmak_izi", "sema_delta"],
-  "veri": {
-    "cuzdan_adresi": "0x92f1...44c2",
-    "cihaz_parmak_izi": "fp_1239_99",
-    "bolge": "abd-dogu"
-  }
-}`}
+          {selected?.rawEvent
+            ? JSON.stringify(selected.rawEvent, null, 2)
+            : "Ham veri yok."}
         </pre>
       </div>
     </div>
