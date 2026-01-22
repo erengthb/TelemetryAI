@@ -1,0 +1,67 @@
+export default function Login() {
+  return (
+    <div className="auth-page">
+      <div className="auth-hero">
+        <div className="auth-logo">
+          <div className="logo-mark">TA</div>
+          <div>
+            <div className="logo-title">TelemetryAI</div>
+            <div className="logo-subtitle">Sinyal Kontrol Guvertesi</div>
+          </div>
+        </div>
+        <h1>Sinyal katmanini yonet.</h1>
+        <p>
+          Her olayi izle, sapmalari aninda yakala ve veri paketlerini uretim
+          sistemlerine gitmeden once temiz tut.
+        </p>
+        <div className="auth-metrics">
+          <div className="card soft">
+            <div className="metric-value">42.8k</div>
+            <div className="metric-label">dakikadaki olay</div>
+          </div>
+          <div className="card soft">
+            <div className="metric-value">99.98%</div>
+            <div className="metric-label">sema istikrari</div>
+          </div>
+          <div className="card soft">
+            <div className="metric-value">18ms</div>
+            <div className="metric-label">P95 inceleme</div>
+          </div>
+        </div>
+        <div className="auth-footer">
+          <span className="pill outline">UAT</span>
+          <span>Surum: 20.14</span>
+        </div>
+      </div>
+      <div className="auth-panel card">
+        <div className="auth-title">
+          <h2>Giris yap</h2>
+          <p>Guverteye girmek icin org erisim anahtarini kullan.</p>
+        </div>
+        <form className="auth-form">
+          <label>
+            E-posta
+            <input type="email" placeholder="name@telemetryai.dev" />
+          </label>
+          <label>
+            Erisim anahtari
+            <input type="password" placeholder="****************" />
+          </label>
+          <label className="checkbox">
+            <input type="checkbox" defaultChecked />
+            Bu cihazi hatirla
+          </label>
+          <button type="button" className="btn primary">
+            Kontrol guvertesine gir
+          </button>
+          <button type="button" className="btn ghost">
+            Erisim iste
+          </button>
+        </form>
+        <div className="auth-note">
+          Devam ederek guvenlik politikasini kabul edersin.
+        </div>
+      </div>
+    </div>
+  );
+}

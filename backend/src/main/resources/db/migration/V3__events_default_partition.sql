@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS events_default PARTITION OF events DEFAULT;
