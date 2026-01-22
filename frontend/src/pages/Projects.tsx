@@ -2,40 +2,40 @@ import Tag from "../components/Tag";
 
 const projects = [
   {
-    name: "Aurora Ops",
+    name: "Aurora Operasyon",
     env: "UAT",
-    status: "Live",
+    status: "Canli",
     events: "18.2M",
     drift: "0.6%",
     keys: "6",
-    note: "Latency trimmed after patch 12.4",
+    note: "12.4 yamasi sonrasi gecikme azaltildi",
   },
   {
-    name: "Orbit Wallet",
-    env: "Prod",
-    status: "Guarded",
+    name: "Orbit Cuzdan",
+    env: "Uretim",
+    status: "Korumali",
     events: "9.4M",
     drift: "1.4%",
     keys: "4",
-    note: "PII found in onboarding payload",
+    note: "Ilk kayit veri paketinde kisisel veri bulundu",
   },
   {
-    name: "Helix Games",
+    name: "Helix Oyunlar",
     env: "UAT",
-    status: "Live",
+    status: "Canli",
     events: "6.1M",
     drift: "0.2%",
     keys: "3",
-    note: "Schema locked for season launch",
+    note: "Sezon lansmani icin sema kilitli",
   },
   {
-    name: "Nova Retail",
-    env: "Dev",
-    status: "Paused",
+    name: "Nova Perakende",
+    env: "Gelistirme",
+    status: "Duraklatildi",
     events: "1.9M",
     drift: "2.8%",
     keys: "2",
-    note: "Field whitelist pending approval",
+    note: "Alan beyaz listesi onay bekliyor",
   },
 ];
 
@@ -44,10 +44,10 @@ export default function Projects() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h2>Projects</h2>
-          <p>Control pipelines, schema policy, and access keys per project.</p>
+          <h2>Projeler</h2>
+          <p>Her proje icin hat, sema politikasi ve erisim anahtarlarini yonet.</p>
         </div>
-        <button className="btn primary">New project</button>
+        <button className="btn primary">Yeni proje</button>
       </div>
       <div className="card-grid">
         {projects.map((project) => (
@@ -59,9 +59,9 @@ export default function Projects() {
               </div>
               <Tag
                 tone={
-                  project.status === "Live"
+                  project.status === "Canli"
                     ? "safe"
-                    : project.status === "Guarded"
+                    : project.status === "Korumali"
                     ? "warn"
                     : "risk"
                 }
@@ -72,21 +72,21 @@ export default function Projects() {
             <div className="project-metrics">
               <div>
                 <div className="metric-value">{project.events}</div>
-                <div className="metric-label">events this month</div>
+                <div className="metric-label">bu ayki olaylar</div>
               </div>
               <div>
                 <div className="metric-value">{project.drift}</div>
-                <div className="metric-label">schema drift</div>
+                <div className="metric-label">sema sapmasi</div>
               </div>
               <div>
                 <div className="metric-value">{project.keys}</div>
-                <div className="metric-label">active keys</div>
+                <div className="metric-label">aktif anahtarlar</div>
               </div>
             </div>
             <div className="project-note">{project.note}</div>
             <div className="project-actions">
-              <button className="btn ghost small">Open panel</button>
-              <button className="btn ghost small">Rotate keys</button>
+              <button className="btn ghost small">Paneli ac</button>
+              <button className="btn ghost small">Anahtarlari dondur</button>
             </div>
           </div>
         ))}

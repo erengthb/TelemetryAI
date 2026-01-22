@@ -6,25 +6,25 @@ export default function Topbar() {
       <div className="topbar-left">
         <div className="topbar-title">
           <span className="pill outline">UAT</span>
-          <span className="topbar-title-text">Live Telemetry Overview</span>
+          <span className="topbar-title-text">Canli Telemetri Ozeti</span>
         </div>
         <div className="search">
           <Icon name="search" />
           <input
             type="search"
-            placeholder="Search projects, keys, payloads"
-            aria-label="Search"
+            placeholder="Projeler, anahtarlar, veri paketleri ara"
+            aria-label="Ara"
           />
         </div>
       </div>
       <div className="topbar-right">
         <button className="pill soft">
           <Icon name="bolt" />
-          Create pipeline
+          Hat olustur
         </button>
         <button className="pill ghost">
           <Icon name="shield" />
-          Threat report
+          Tehdit raporu
         </button>
         <div className="avatar">
           <Icon name="user" />

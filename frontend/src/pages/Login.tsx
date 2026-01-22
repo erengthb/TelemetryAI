@@ -6,60 +6,60 @@ export default function Login() {
           <div className="logo-mark">TA</div>
           <div>
             <div className="logo-title">TelemetryAI</div>
-            <div className="logo-subtitle">Signal Control Deck</div>
+            <div className="logo-subtitle">Sinyal Kontrol Guvertesi</div>
           </div>
         </div>
-        <h1>Command the signal layer.</h1>
+        <h1>Sinyal katmanini yonet.</h1>
         <p>
-          Monitor every event, detect drift instantly, and keep payloads clean
-          before they hit production systems.
+          Her olayi izle, sapmalari aninda yakala ve veri paketlerini uretim
+          sistemlerine gitmeden once temiz tut.
         </p>
         <div className="auth-metrics">
           <div className="card soft">
             <div className="metric-value">42.8k</div>
-            <div className="metric-label">events per minute</div>
+            <div className="metric-label">dakikadaki olay</div>
           </div>
           <div className="card soft">
             <div className="metric-value">99.98%</div>
-            <div className="metric-label">schema stability</div>
+            <div className="metric-label">sema istikrari</div>
           </div>
           <div className="card soft">
             <div className="metric-value">18ms</div>
-            <div className="metric-label">P95 inspection</div>
+            <div className="metric-label">P95 inceleme</div>
           </div>
         </div>
         <div className="auth-footer">
           <span className="pill outline">UAT</span>
-          <span>Build: 20.14</span>
+          <span>Surum: 20.14</span>
         </div>
       </div>
       <div className="auth-panel card">
         <div className="auth-title">
-          <h2>Sign in</h2>
-          <p>Use your org access key to enter the deck.</p>
+          <h2>Giris yap</h2>
+          <p>Guverteye girmek icin org erisim anahtarini kullan.</p>
         </div>
         <form className="auth-form">
           <label>
-            Email
+            E-posta
             <input type="email" placeholder="name@telemetryai.dev" />
           </label>
           <label>
-            Access key
+            Erisim anahtari
             <input type="password" placeholder="****************" />
           </label>
           <label className="checkbox">
             <input type="checkbox" defaultChecked />
-            Remember this device
+            Bu cihazi hatirla
           </label>
           <button type="button" className="btn primary">
-            Enter control deck
+            Kontrol guvertesine gir
           </button>
           <button type="button" className="btn ghost">
-            Request access
+            Erisim iste
           </button>
         </form>
         <div className="auth-note">
-          By continuing you agree to the security policy.
+          Devam ederek guvenlik politikasini kabul edersin.
         </div>
       </div>
     </div>

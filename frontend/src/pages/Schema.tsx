@@ -2,44 +2,44 @@ import Tag from "../components/Tag";
 
 const fields = [
   {
-    name: "event_name",
-    type: "string",
-    policy: "safe",
-    note: "Locked",
+    name: "olay_adi",
+    type: "metin",
+    policy: "guvenli",
+    note: "Kilitli",
   },
   {
-    name: "player_id",
-    type: "string",
-    policy: "pii",
-    note: "Hash before ingest",
+    name: "oyuncu_id",
+    type: "metin",
+    policy: "kisisel",
+    note: "Alimdan once hashle",
   },
   {
-    name: "session_id",
-    type: "string",
-    policy: "safe",
+    name: "oturum_id",
+    type: "metin",
+    policy: "guvenli",
     note: "UUIDv7",
   },
   {
-    name: "wallet_address",
-    type: "string",
-    policy: "pii",
-    note: "Mask for analytics",
+    name: "cuzdan_adresi",
+    type: "metin",
+    policy: "kisisel",
+    note: "Analiz icin maskele",
   },
   {
-    name: "device_fingerprint",
-    type: "string",
+    name: "cihaz_parmak_izi",
+    type: "metin",
     policy: "risk",
-    note: "Quarantine if new",
+    note: "Yeni ise karantina",
   },
 ];
 
 const samplePayload = `{
-  "event_name": "match_start",
-  "player_id": "8f1c...d2",
-  "session_id": "018d-7d2c-9a",
-  "wallet_address": "0x92f1...44c2",
-  "device_fingerprint": "fp_1239_99",
-  "region": "eu-west"
+  "olay_adi": "mac_baslangic",
+  "oyuncu_id": "8f1c...d2",
+  "oturum_id": "018d-7d2c-9a",
+  "cuzdan_adresi": "0x92f1...44c2",
+  "cihaz_parmak_izi": "fp_1239_99",
+  "bolge": "ab-bati"
 }`;
 
 export default function Schema() {
@@ -47,21 +47,21 @@ export default function Schema() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h2>Schema Lab</h2>
-          <p>Design payload structure and apply PII protection rules.</p>
+          <h2>Sema Laboratuvari</h2>
+          <p>Veri paketi yapisini tasarla ve kisisel veri koruma kurallarini uygula.</p>
         </div>
-        <button className="btn primary">Propose update</button>
+        <button className="btn primary">Guncelleme oner</button>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-title">Field policy map</div>
+          <div className="card-title">Alan politika haritasi</div>
           <div className="table">
             <div className="table-row head cols-4">
-              <span>Field</span>
-              <span>Type</span>
-              <span>Policy</span>
-              <span>Note</span>
+              <span>Alan</span>
+              <span>Tip</span>
+              <span>Politika</span>
+              <span>Not</span>
             </div>
             {fields.map((field) => (
               <div key={field.name} className="table-row cols-4">
@@ -70,9 +70,9 @@ export default function Schema() {
                 <span>
                   <Tag
                     tone={
-                      field.policy === "safe"
+                      field.policy === "guvenli"
                         ? "safe"
-                        : field.policy === "pii"
+                        : field.policy === "kisisel"
                         ? "warn"
                         : "risk"
                     }
@@ -87,37 +87,37 @@ export default function Schema() {
         </div>
 
         <div className="card">
-          <div className="card-title">Sample payload</div>
+          <div className="card-title">Ornek veri paketi</div>
           <div className="card-subtitle">
-            Live schema preview with sanitized fields.
+            Temizlenmis alanlarla canli sema onizleme.
           </div>
           <pre className="code-block">{samplePayload}</pre>
           <div className="schema-actions">
-            <button className="btn ghost small">Run validation</button>
-            <button className="btn ghost small">Export JSON</button>
+            <button className="btn ghost small">Dogrulama calistir</button>
+            <button className="btn ghost small">JSON disari aktar</button>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <div className="card-title">Schema change log</div>
+        <div className="card-title">Sema degisim gunlugu</div>
         <div className="timeline">
           <div className="timeline-item">
-            <div className="timeline-time">2 hours ago</div>
+            <div className="timeline-time">2 saat once</div>
             <div className="timeline-body">
-              Added <span className="mono">region</span> field with safe policy.
+              <span className="mono">bolge</span> alani guvenli politikayla eklendi.
             </div>
           </div>
           <div className="timeline-item">
-            <div className="timeline-time">Yesterday</div>
+            <div className="timeline-time">Dun</div>
             <div className="timeline-body">
-              Updated <span className="mono">wallet_address</span> masking rule.
+              <span className="mono">cuzdan_adresi</span> maskeleme kurali guncellendi.
             </div>
           </div>
           <div className="timeline-item">
-            <div className="timeline-time">3 days ago</div>
+            <div className="timeline-time">3 gun once</div>
             <div className="timeline-body">
-              Removed deprecated <span className="mono">client_ip</span> field.
+              Kullanimdan kaldirilan <span className="mono">istemci_ip</span> alani kaldirildi.
             </div>
           </div>
         </div>
