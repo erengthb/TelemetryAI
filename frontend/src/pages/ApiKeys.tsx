@@ -3,6 +3,7 @@ import Tag from "../components/Tag";
 import { api } from "../api";
 import { ApiKeyCreateResponse, ApiKeyResponse, EnvironmentResponse, ProjectResponse } from "../api/types";
 import { formatDateShort, formatEnvLabel } from "../utils/format";
+import { pickEnvName, pickProjectId, saveEnvName, saveProjectId } from "../utils/selection";
 
 export default function ApiKeys() {
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -13,6 +14,7 @@ export default function ApiKeys() {
   const [createdKey, setCreatedKey] = useState<ApiKeyCreateResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -25,8 +27,10 @@ export default function ApiKeys() {
           return;
         }
         setProjects(projectList);
-        if (projectList.length > 0) {
-          setSelectedProjectId(projectList[0].id);
+        const initialProjectId = pickProjectId(projectList);
+        setSelectedProjectId(initialProjectId);
+        if (initialProjectId) {
+          saveProjectId(initialProjectId);
         }
       } catch (err) {
         if (active) {
@@ -53,8 +57,10 @@ export default function ApiKeys() {
           return;
         }
         setEnvs(envList);
-        if (envList.length > 0) {
-          setSelectedEnv(envList[0].envName);
+        const initialEnv = pickEnvName(envList);
+        setSelectedEnv(initialEnv);
+        if (initialEnv) {
+          saveEnvName(initialEnv);
         }
       } catch (err) {
         if (active) {
@@ -76,6 +82,7 @@ export default function ApiKeys() {
     const loadKeys = async () => {
       setLoading(true);
       setError(null);
+      setCreatedKey(null);
       try {
         const list = await api.listApiKeys(selectedProjectId, selectedEnv);
         if (!active) {
@@ -114,6 +121,30 @@ export default function ApiKeys() {
     }
   };
 
+  const handleRevoke = async (key: ApiKeyResponse) => {
+    if (!selectedProjectId || !key.envName) {
+      return;
+    }
+    if (key.status !== "active") {
+      return;
+    }
+    const confirmed = window.confirm("Bu anahtari iptal etmek istiyor musun?");
+    if (!confirmed) {
+      return;
+    }
+    setError(null);
+    setRevokingId(key.id);
+    try {
+      await api.revokeApiKey(selectedProjectId, key.envName);
+      const list = await api.listApiKeys(selectedProjectId, selectedEnv);
+      setKeys(list);
+    } catch (err) {
+      setError("Anahtar iptal edilemedi.");
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
   const handleCopy = async () => {
     if (!createdKey?.apiKey) {
       return;
@@ -145,7 +176,12 @@ export default function ApiKeys() {
               Proje
               <select
                 value={selectedProjectId}
-                onChange={(event) => setSelectedProjectId(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setSelectedProjectId(next);
+                  setSelectedEnv("");
+                  saveProjectId(next);
+                }}
               >
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
@@ -156,7 +192,14 @@ export default function ApiKeys() {
             </label>
             <label>
               Ortam
-              <select value={selectedEnv} onChange={(event) => setSelectedEnv(event.target.value)}>
+              <select
+                value={selectedEnv}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setSelectedEnv(next);
+                  saveEnvName(next);
+                }}
+              >
                 {envs.map((env) => (
                   <option key={env.id} value={env.envName}>
                     {formatEnvLabel(env.envName)}
@@ -166,24 +209,25 @@ export default function ApiKeys() {
             </label>
           </div>
           <div className="table">
-            <div className="table-row head cols-5">
+            <div className="table-row head cols-6">
               <span>Maske</span>
               <span>Ortam</span>
               <span>Durum</span>
               <span>Olusma</span>
               <span>Iptal</span>
+              <span>Aksiyon</span>
             </div>
             {loading ? (
-              <div className="table-row cols-5">
+              <div className="table-row cols-6">
                 <span>Yukleniyor...</span>
               </div>
             ) : keys.length === 0 ? (
-              <div className="table-row cols-5">
+              <div className="table-row cols-6">
                 <span>Anahtar bulunamadi.</span>
               </div>
             ) : (
               keys.map((key) => (
-                <div key={key.id} className="table-row cols-5">
+                <div key={key.id} className="table-row cols-6">
                   <span className="mono">{key.maskedKey}</span>
                   <span>{formatEnvLabel(key.envName)}</span>
                   <span>
@@ -192,7 +236,20 @@ export default function ApiKeys() {
                     </Tag>
                   </span>
                   <span>{formatDateShort(key.createdAt)}</span>
-                  <span>{formatDateShort(key.revokedAt)}</span>
+                  <span>{key.revokedAt ? formatDateShort(key.revokedAt) : "-"}</span>
+                  <span>
+                    {key.status === "active" ? (
+                      <button
+                        className="btn danger small"
+                        onClick={() => handleRevoke(key)}
+                        disabled={revokingId === key.id}
+                      >
+                        Iptal et
+                      </button>
+                    ) : (
+                      "-"
+                    )}
+                  </span>
                 </div>
               ))
             )}

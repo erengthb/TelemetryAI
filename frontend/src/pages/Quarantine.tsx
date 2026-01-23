@@ -7,6 +7,7 @@ import {
 } from "../api/types";
 import { formatDateShort, formatEnvLabel } from "../utils/format";
 import Tag from "../components/Tag";
+import { pickEnvName, pickProjectId, saveEnvName, saveProjectId } from "../utils/selection";
 
 const ranges = [
   { label: "7 gun", value: "7d" },
@@ -35,8 +36,10 @@ export default function Quarantine() {
           return;
         }
         setProjects(projectList);
-        if (projectList.length > 0) {
-          setProjectId(projectList[0].id);
+        const initialProjectId = pickProjectId(projectList);
+        setProjectId(initialProjectId);
+        if (initialProjectId) {
+          saveProjectId(initialProjectId);
         }
       } catch (err) {
         if (active) {
@@ -63,8 +66,10 @@ export default function Quarantine() {
           return;
         }
         setEnvs(envList);
-        if (envList.length > 0) {
-          setEnvName(envList[0].envName);
+        const initialEnv = pickEnvName(envList);
+        setEnvName(initialEnv);
+        if (initialEnv) {
+          saveEnvName(initialEnv);
         }
       } catch (err) {
         if (active) {
@@ -126,7 +131,15 @@ export default function Quarantine() {
           <div className="form-stack">
             <label>
               Proje
-              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+              <select
+                value={projectId}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setProjectId(next);
+                  setEnvName("");
+                  saveProjectId(next);
+                }}
+              >
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -136,7 +149,14 @@ export default function Quarantine() {
             </label>
             <label>
               Ortam
-              <select value={envName} onChange={(event) => setEnvName(event.target.value)}>
+              <select
+                value={envName}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setEnvName(next);
+                  saveEnvName(next);
+                }}
+              >
                 {envs.map((env) => (
                   <option key={env.id} value={env.envName}>
                     {formatEnvLabel(env.envName)}

@@ -10,6 +10,7 @@ import {
 import { api } from "../api";
 import { AiReportJson, EnvironmentResponse, ProjectResponse } from "../api/types";
 import { formatEnvLabel } from "../utils/format";
+import { pickEnvName, pickProjectId, saveEnvName, saveProjectId } from "../utils/selection";
 
 const dailyRanges = [
   { label: "7 gun", value: "7d" },
@@ -31,6 +32,74 @@ function extractScore(report: AiReportJson) {
     return summary.score;
   }
   return 0;
+}
+
+function pickString(value: unknown) {
+  return typeof value === "string" ? value : undefined;
+}
+
+function pickStringArray(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item) => typeof item === "string") as string[];
+}
+
+function pickRecord(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function formatScore(score: number) {
+  if (!Number.isFinite(score)) {
+    return "0";
+  }
+  return score % 1 === 0 ? String(score) : score.toFixed(1);
+}
+
+function buildReportCard(report: AiReportJson, index: number, label: string) {
+  const data = report as Record<string, unknown>;
+  const summaryBlock = pickRecord(data.summary);
+  const title =
+    pickString(data.title) ??
+    pickString(data.name) ??
+    pickString(summaryBlock?.title) ??
+    `${label} rapor #${index + 1}`;
+  const subtitle =
+    pickString(data.date) ??
+    pickString(data.period) ??
+    pickString(data.range) ??
+    pickString(summaryBlock?.period);
+  const summary =
+    pickString(data.summary) ??
+    pickString(summaryBlock?.text) ??
+    pickString(summaryBlock?.overview);
+  const bullets = [
+    ...pickStringArray(data.highlights),
+    ...pickStringArray(data.insights),
+    ...pickStringArray(data.recommendations),
+    ...pickStringArray(data.risks),
+  ].slice(0, 4);
+  const tags = [
+    ...pickStringArray(data.tags),
+    ...pickStringArray(data.topics),
+  ].slice(0, 4);
+  const rawPreview = summary
+    ? ""
+    : (() => {
+        const raw = JSON.stringify(report);
+        return raw.length > 220 ? `${raw.slice(0, 220)}...` : raw;
+      })();
+  return {
+    title,
+    subtitle,
+    score: formatScore(extractScore(report)),
+    summary: summary ?? rawPreview,
+    bullets,
+    tags,
+  };
 }
 
 export default function Reports() {
@@ -56,8 +125,10 @@ export default function Reports() {
           return;
         }
         setProjects(projectList);
-        if (projectList.length > 0) {
-          setProjectId(projectList[0].id);
+        const initialProjectId = pickProjectId(projectList);
+        setProjectId(initialProjectId);
+        if (initialProjectId) {
+          saveProjectId(initialProjectId);
         }
       } catch (err) {
         if (active) {
@@ -84,8 +155,10 @@ export default function Reports() {
           return;
         }
         setEnvs(envList);
-        if (envList.length > 0) {
-          setEnvName(envList[0].envName);
+        const initialEnv = pickEnvName(envList);
+        setEnvName(initialEnv);
+        if (initialEnv) {
+          saveEnvName(initialEnv);
         }
       } catch (err) {
         if (active) {
@@ -153,6 +226,16 @@ export default function Reports() {
     [weeklyReports]
   );
 
+  const dailyCards = useMemo(
+    () => dailyReports.map((report, index) => buildReportCard(report, index, "Gunluk")),
+    [dailyReports]
+  );
+
+  const weeklyCards = useMemo(
+    () => weeklyReports.map((report, index) => buildReportCard(report, index, "Haftalik")),
+    [weeklyReports]
+  );
+
   return (
     <div className="page">
       <div className="page-header">
@@ -168,7 +251,15 @@ export default function Reports() {
           <div className="form-stack">
             <label>
               Proje
-              <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+              <select
+                value={projectId}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setProjectId(next);
+                  setEnvName("");
+                  saveProjectId(next);
+                }}
+              >
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -178,7 +269,14 @@ export default function Reports() {
             </label>
             <label>
               Ortam
-              <select value={envName} onChange={(event) => setEnvName(event.target.value)}>
+              <select
+                value={envName}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setEnvName(next);
+                  saveEnvName(next);
+                }}
+              >
                 {envs.map((env) => (
                   <option key={env.id} value={env.envName}>
                     {formatEnvLabel(env.envName)}
@@ -273,50 +371,82 @@ export default function Reports() {
 
       <div className="card">
         <div className="card-title">Gunluk raporlar</div>
-        <div className="list">
-          {dailyReports.length === 0 ? (
-            <div className="list-item">
-              <div className="list-title">Gunluk rapor yok.</div>
-            </div>
-          ) : (
-            dailyReports.map((report, index) => {
-              const raw = JSON.stringify(report);
-              const preview = raw.length > 180 ? `${raw.slice(0, 180)}...` : raw;
-              return (
-                <div key={`daily-${index}`} className="list-item">
+        {dailyCards.length === 0 ? (
+          <div className="helper">Gunluk rapor yok.</div>
+        ) : (
+          <div className="report-grid">
+            {dailyCards.map((card, index) => (
+              <div key={`daily-${index}`} className="card report-card">
+                <div className="report-head">
                   <div>
-                    <div className="list-title">Gunluk rapor #{index + 1}</div>
-                    <div className="list-subtitle">{preview}</div>
+                    <div className="card-title">{card.title}</div>
+                    {card.subtitle ? <div className="card-subtitle">{card.subtitle}</div> : null}
                   </div>
+                  <div className="pill soft">Skor {card.score}</div>
                 </div>
-              );
-            })
-          )}
-        </div>
+                {card.summary ? <p className="report-summary">{card.summary}</p> : null}
+                {card.tags.length ? (
+                  <div className="report-tags">
+                    {card.tags.map((tag, tagIndex) => (
+                      <span key={`daily-tag-${index}-${tagIndex}`} className="pill ghost">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {card.bullets.length ? (
+                  <ul className="report-list">
+                    {card.bullets.map((item, itemIndex) => (
+                      <li key={`daily-item-${index}-${itemIndex}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="report-empty">Ek not yok.</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card">
         <div className="card-title">Haftalik raporlar</div>
-        <div className="list">
-          {weeklyReports.length === 0 ? (
-            <div className="list-item">
-              <div className="list-title">Haftalik rapor yok.</div>
-            </div>
-          ) : (
-            weeklyReports.map((report, index) => {
-              const raw = JSON.stringify(report);
-              const preview = raw.length > 180 ? `${raw.slice(0, 180)}...` : raw;
-              return (
-                <div key={`weekly-${index}`} className="list-item">
+        {weeklyCards.length === 0 ? (
+          <div className="helper">Haftalik rapor yok.</div>
+        ) : (
+          <div className="report-grid">
+            {weeklyCards.map((card, index) => (
+              <div key={`weekly-${index}`} className="card report-card">
+                <div className="report-head">
                   <div>
-                    <div className="list-title">Haftalik rapor #{index + 1}</div>
-                    <div className="list-subtitle">{preview}</div>
+                    <div className="card-title">{card.title}</div>
+                    {card.subtitle ? <div className="card-subtitle">{card.subtitle}</div> : null}
                   </div>
+                  <div className="pill soft">Skor {card.score}</div>
                 </div>
-              );
-            })
-          )}
-        </div>
+                {card.summary ? <p className="report-summary">{card.summary}</p> : null}
+                {card.tags.length ? (
+                  <div className="report-tags">
+                    {card.tags.map((tag, tagIndex) => (
+                      <span key={`weekly-tag-${index}-${tagIndex}`} className="pill ghost">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {card.bullets.length ? (
+                  <ul className="report-list">
+                    {card.bullets.map((item, itemIndex) => (
+                      <li key={`weekly-item-${index}-${itemIndex}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="report-empty">Ek not yok.</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

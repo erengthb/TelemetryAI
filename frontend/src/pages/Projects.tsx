@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Tag from "../components/Tag";
 import { api } from "../api";
 import { OrgResponse, ProjectResponse } from "../api/types";
 import { formatDateShort } from "../utils/format";
+import { saveProjectId } from "../utils/selection";
 
 export default function Projects() {
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
@@ -11,6 +13,7 @@ export default function Projects() {
   const [error, setError] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
   const [orgId, setOrgId] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -60,6 +63,11 @@ export default function Projects() {
     } catch (err) {
       setError("Proje olusturulamadi.");
     }
+  };
+
+  const handleDetails = (projectId: string) => {
+    saveProjectId(projectId);
+    navigate("/");
   };
 
   return (
@@ -136,7 +144,9 @@ export default function Projects() {
               </div>
             </div>
             <div className="project-actions">
-              <button className="btn ghost small">Detaylar</button>
+              <button className="btn ghost small" onClick={() => handleDetails(project.id)}>
+                Detaylar
+              </button>
             </div>
           </div>
         ))

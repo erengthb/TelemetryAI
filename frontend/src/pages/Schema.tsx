@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { ProjectResponse } from "../api/types";
+import { pickProjectId, saveProjectId } from "../utils/selection";
 
 const samplePayload = `{
   "olay_adi": "mac_baslangic",
@@ -29,8 +30,10 @@ export default function Schema() {
           return;
         }
         setProjects(projectList);
-        if (projectList.length > 0) {
-          setSelectedProjectId(projectList[0].id);
+        const initialProjectId = pickProjectId(projectList);
+        setSelectedProjectId(initialProjectId);
+        if (initialProjectId) {
+          saveProjectId(initialProjectId);
         }
       } catch (err) {
         if (active) {
@@ -129,7 +132,11 @@ export default function Schema() {
               Proje
               <select
                 value={selectedProjectId}
-                onChange={(event) => setSelectedProjectId(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setSelectedProjectId(next);
+                  saveProjectId(next);
+                }}
               >
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
