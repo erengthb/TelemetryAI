@@ -1,0 +1,22 @@
+{
+  "client": {
+    "sdk": "telemetryai-unreal",
+    "sdkVersion": "0.1.0",
+    "engine": "unreal",
+    "engineVersion": "5.3",
+    "buildVersion": "1.2.0+451.g1a2b3c4",
+    "platform": "Windows"
+  },
+  "events": [
+    {
+      "eventId": "f7c1f9c0-b4e2-4ff1-8f39-4a3b2ad1a9b8",
+      "timestampClient": 1737372060456,
+      "eventName": "custom_unknown",
+      "sessionId": "0b2b3f2d-2e60-4b11-9a30-0c1f5f0b2f77",
+      "playerId": "a9d2b7d1-2b56-4f4f-91e1-0a6d73f8d4aa",
+      "properties": {
+        "email": "player@example.com"
+      }
+    }
+  ]
+}

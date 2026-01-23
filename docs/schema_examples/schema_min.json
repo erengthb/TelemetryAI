@@ -1,0 +1,16 @@
+{
+  "schemaId": "33333333-3333-3333-3333-333333333333",
+  "schemaVersion": 1,
+  "projectId": "44444444-4444-4444-4444-444444444444",
+  "updatedAt": "2026-01-20T12:00:00Z",
+  "events": [
+    {
+      "eventName": "level_start",
+      "eventDescription": "Level baslangic olayi.",
+      "required": true,
+      "properties": [
+        { "key": "levelId", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

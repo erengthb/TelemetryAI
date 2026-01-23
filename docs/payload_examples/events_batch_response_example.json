@@ -1,0 +1,13 @@
+{
+  "received": 3,
+  "accepted": 2,
+  "invalid": 1,
+  "duplicate": 0,
+  "invalidSamples": [
+    {
+      "eventId": "f7c1f9c0-b4e2-4ff1-8f39-4a3b2ad1a9b8",
+      "eventName": "custom_unknown",
+      "reasons": ["EVENT_NOT_IN_SCHEMA", "PII_DETECTED"]
+    }
+  ]
+}

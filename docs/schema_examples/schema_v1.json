@@ -1,0 +1,38 @@
+{
+  "schemaId": "11111111-1111-1111-1111-111111111111",
+  "schemaVersion": 1,
+  "projectId": "22222222-2222-2222-2222-222222222222",
+  "updatedAt": "2026-01-20T12:00:00Z",
+  "events": [
+    {
+      "eventName": "session_start",
+      "eventDescription": "Oturum baslangic olayi.",
+      "required": true,
+      "properties": [
+        { "key": "entryPoint", "type": "string", "required": false }
+      ]
+    },
+    {
+      "eventName": "level_end",
+      "eventDescription": "Level bitis olayi, sonuc ve sure bilgisi.",
+      "required": true,
+      "properties": [
+        { "key": "levelId", "type": "string", "required": true },
+        { "key": "result", "type": "string", "required": true, "allowed": ["success", "fail", "quit"] },
+        { "key": "durationSec", "type": "number", "required": true },
+        { "key": "deathCount", "type": "number", "required": false }
+      ]
+    },
+    {
+      "eventName": "custom_shop_purchase",
+      "eventDescription": "Magaza satin alma olayi.",
+      "required": false,
+      "properties": [
+        { "key": "sku", "type": "string", "required": true },
+        { "key": "priceUsd", "type": "number", "required": true },
+        { "key": "currency", "type": "string", "required": true, "allowed": ["USD", "EUR", "TRY"] },
+        { "key": "isPromo", "type": "boolean", "required": false }
+      ]
+    }
+  ]
+}
