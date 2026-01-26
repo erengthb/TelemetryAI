@@ -268,7 +268,7 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="card-title">Huni ozeti</div>
-          <div className="card-subtitle">Baslangic -> bitis dagilimi</div>
+          <div className="card-subtitle">Baslangic - bitis dagilimi</div>
           <div style={{ width: "100%", height: 240 }}>
             <ResponsiveContainer>
               <FunnelChart>

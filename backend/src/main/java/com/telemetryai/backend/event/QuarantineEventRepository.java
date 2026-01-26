@@ -18,7 +18,7 @@ public interface QuarantineEventRepository extends JpaRepository<QuarantineEvent
           and env_name = :envName
           and received_at between :from and :to
           and (:eventName is null or event_name = :eventName)
-          and (:reason is null or reasons ? :reason)
+          and (:reason is null or jsonb_exists(reasons, :reason))
         order by received_at desc
         limit :limit offset :offset
         """, nativeQuery = true)

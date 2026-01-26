@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE orgs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT ''active'',
+    status TEXT NOT NULL DEFAULT 'active',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -17,7 +17,7 @@ CREATE TABLE users (
 CREATE TABLE org_members (
     org_id UUID NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN (''admin'', ''viewer'')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'viewer')),
     PRIMARY KEY (org_id, user_id)
 );
 
@@ -31,14 +31,14 @@ CREATE TABLE projects (
 CREATE TABLE environments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     UNIQUE (project_id, env_name)
 );
 
 CREATE TABLE api_keys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     key_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     revoked_at TIMESTAMPTZ,
@@ -55,10 +55,10 @@ CREATE TABLE schemas (
 );
 
 CREATE TABLE events (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL,
     org_id UUID NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     event_id UUID NOT NULL,
     event_name TEXT NOT NULL,
     event_description TEXT,
@@ -70,7 +70,8 @@ CREATE TABLE events (
     platform TEXT,
     device JSONB,
     properties JSONB NOT NULL,
-    UNIQUE (project_id, env_name, event_id)
+    PRIMARY KEY (id, ts_server),
+    UNIQUE (project_id, env_name, event_id, ts_server)
 ) PARTITION BY RANGE (ts_server);
 
 CREATE INDEX idx_events_project_env_ts ON events (project_id, env_name, ts_server);
@@ -82,7 +83,7 @@ CREATE TABLE quarantine_events (
     id BIGSERIAL PRIMARY KEY,
     org_id UUID NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     event_id UUID,
     event_name TEXT,
@@ -103,11 +104,11 @@ CREATE INDEX idx_quarantine_project_env_name_received ON quarantine_events (proj
 CREATE TABLE ai_reports (
     id BIGSERIAL PRIMARY KEY,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
-    report_type TEXT NOT NULL CHECK (report_type IN (''daily'', ''weekly'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
+    report_type TEXT NOT NULL CHECK (report_type IN ('daily', 'weekly')),
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
-    status TEXT NOT NULL DEFAULT ''completed'',
+    status TEXT NOT NULL DEFAULT 'completed',
     report_json JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -115,7 +116,7 @@ CREATE TABLE ai_reports (
 CREATE TABLE daily_project_metrics (
     metric_date DATE NOT NULL,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     total_events BIGINT NOT NULL,
     unique_players BIGINT NOT NULL,
     sessions_started BIGINT NOT NULL,
@@ -125,7 +126,7 @@ CREATE TABLE daily_project_metrics (
 CREATE TABLE daily_event_name_metrics (
     metric_date DATE NOT NULL,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     event_name TEXT NOT NULL,
     count BIGINT NOT NULL,
     PRIMARY KEY (metric_date, project_id, env_name, event_name)
@@ -134,7 +135,7 @@ CREATE TABLE daily_event_name_metrics (
 CREATE TABLE daily_level_funnel (
     metric_date DATE NOT NULL,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    env_name TEXT NOT NULL CHECK (env_name IN (''dev'', ''stage'', ''prod'')),
+    env_name TEXT NOT NULL CHECK (env_name IN ('dev', 'stage', 'prod')),
     level_id TEXT NOT NULL,
     starts BIGINT NOT NULL,
     ends_success BIGINT NOT NULL,

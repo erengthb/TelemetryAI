@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Shell from "./components/Shell";
+import RequireAuth from "./components/RequireAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
@@ -14,7 +15,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Shell />}>
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <Shell />
+          </RequireAuth>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="projects" element={<Projects />} />
         <Route path="api-keys" element={<ApiKeys />} />

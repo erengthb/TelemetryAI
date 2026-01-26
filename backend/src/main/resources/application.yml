@@ -14,7 +14,7 @@ spring:
 
 security:
   jwt:
-    secret: ${JWT_SECRET:change-me-in-prod}
+    secret: ${JWT_SECRET:telemetryai-dev-secret-32-chars-minimum!!}
     ttlMinutes: ${JWT_TTL_MINUTES:120}
 
 management:
