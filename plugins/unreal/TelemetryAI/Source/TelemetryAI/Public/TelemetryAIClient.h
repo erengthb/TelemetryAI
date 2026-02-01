@@ -79,3 +79,16 @@ private:
 
     FTelemetryAITickerHandle TickerHandle;
 };
+
+namespace TelemetryAI
+{
+    inline void Event(const FString& EventName)
+    {
+        FTelemetryAIClient::Get().TrackEvent(EventName, FString());
+    }
+
+    inline void EventJson(const FString& EventName, const FString& PropertiesJson)
+    {
+        FTelemetryAIClient::Get().TrackEvent(EventName, PropertiesJson);
+    }
+}

@@ -27,6 +27,11 @@ void UTelemetryAIBlueprintLibrary::TrackEventJson(const FString& EventName, cons
     FTelemetryAIClient::Get().TrackEvent(EventName, PropertiesJson);
 }
 
+void UTelemetryAIBlueprintLibrary::TrackEvent(const FString& EventName)
+{
+    FTelemetryAIClient::Get().TrackEvent(EventName, FString());
+}
+
 void UTelemetryAIBlueprintLibrary::TrackEventSimple(const FString& EventName, const TMap<FString, FString>& Properties)
 {
     FTelemetryAIClient::Get().TrackEventSimple(EventName, Properties);

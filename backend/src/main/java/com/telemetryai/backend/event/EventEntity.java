@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -53,9 +55,11 @@ public class EventEntity {
     @Column(name = "platform")
     private String platform;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "device", columnDefinition = "jsonb")
     private String device;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "properties", nullable = false, columnDefinition = "jsonb")
     private String properties;
 

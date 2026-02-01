@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -35,9 +37,11 @@ public class QuarantineEventEntity {
     @Column(name = "event_name")
     private String eventName;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "raw_event", nullable = false, columnDefinition = "jsonb")
     private String rawEvent;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "reasons", nullable = false, columnDefinition = "jsonb")
     private String reasons;
 

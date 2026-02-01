@@ -1,4 +1,4 @@
-import { getToken } from "./auth";
+import { clearToken, getToken } from "./auth";
 
 type QueryValue = string | number | boolean | null | undefined;
 
@@ -57,6 +57,12 @@ export async function request<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      clearToken();
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+    }
     const message =
       typeof payload === "string" && payload.trim().length > 0
         ? payload

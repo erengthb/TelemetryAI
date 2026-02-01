@@ -22,6 +22,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "TelemetryAI")
     static void TrackEventJson(const FString& EventName, const FString& PropertiesJson);
 
+    UFUNCTION(BlueprintCallable, Category = "TelemetryAI", meta = (DisplayName = "Track Event"))
+    static void TrackEvent(const FString& EventName);
+
     UFUNCTION(BlueprintCallable, Category = "TelemetryAI")
     static void TrackEventSimple(const FString& EventName, const TMap<FString, FString>& Properties);
 

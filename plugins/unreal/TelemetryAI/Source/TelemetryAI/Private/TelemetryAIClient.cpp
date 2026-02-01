@@ -50,6 +50,16 @@ void FTelemetryAIClient::Init(const FTelemetryAIConfig& InConfig)
     EnsureSpoolDirs();
     LoadSpool();
 
+    FString MaskedKey = Config.ApiKey;
+    if (MaskedKey.IsEmpty())
+    {
+        MaskedKey = TEXT("(empty)");
+    }
+    else if (MaskedKey.Len() > 4)
+    {
+        MaskedKey = FString::Printf(TEXT("****%s"), *MaskedKey.Right(4));
+    }
+
     if (!TickerHandle.IsValid())
     {
         TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
@@ -60,7 +70,7 @@ void FTelemetryAIClient::Init(const FTelemetryAIConfig& InConfig)
 
     bInitialized = true;
     LastFlushTimeSec = FPlatformTime::Seconds();
-    UE_LOG(LogTelemetryAI, Log, TEXT("TelemetryAI initialized."));
+    UE_LOG(LogTelemetryAI, Log, TEXT("TelemetryAI initialized. endpoint=%s env=%s apiKey=%s"), *Config.EndpointUrl, *Config.Environment, *MaskedKey);
 }
 
 void FTelemetryAIClient::Shutdown()
