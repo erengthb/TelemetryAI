@@ -1,6 +1,7 @@
 #include "TelemetryAIBlueprintLibrary.h"
 #include "TelemetryAIClient.h"
 #include "TelemetryAISettings.h"
+#include "TelemetryAISchemaSync.h"
 
 void UTelemetryAIBlueprintLibrary::InitFromSettings()
 {
@@ -37,6 +38,24 @@ void UTelemetryAIBlueprintLibrary::TrackEventSimple(const FString& EventName, co
     FTelemetryAIClient::Get().TrackEventSimple(EventName, Properties);
 }
 
+void UTelemetryAIBlueprintLibrary::TrackEventEnum(ETelemetryAIEventName EventName)
+{
+    const TCHAR* Name = TelemetryAIEvents::ToString(EventName);
+    if (Name && *Name)
+    {
+        FTelemetryAIClient::Get().TrackEvent(FString(Name), FString());
+    }
+}
+
+void UTelemetryAIBlueprintLibrary::TrackEventEnumJson(ETelemetryAIEventName EventName, const FString& PropertiesJson)
+{
+    const TCHAR* Name = TelemetryAIEvents::ToString(EventName);
+    if (Name && *Name)
+    {
+        FTelemetryAIClient::Get().TrackEvent(FString(Name), PropertiesJson);
+    }
+}
+
 void UTelemetryAIBlueprintLibrary::Flush()
 {
     FTelemetryAIClient::Get().Flush();
@@ -50,4 +69,9 @@ void UTelemetryAIBlueprintLibrary::SetPlayerId(const FString& PlayerId)
 void UTelemetryAIBlueprintLibrary::SetSessionId(const FString& SessionId)
 {
     FTelemetryAIClient::Get().SetSessionId(SessionId);
+}
+
+bool UTelemetryAIBlueprintLibrary::SyncSchema(bool bWriteHeader)
+{
+    return FTelemetryAISchemaSync::SyncFromSettings(bWriteHeader);
 }

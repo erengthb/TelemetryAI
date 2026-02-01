@@ -23,6 +23,12 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        if (!"/v1/events/batch".equals(path) || !"POST".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         long start = System.currentTimeMillis();
         Exception error = null;
         try {

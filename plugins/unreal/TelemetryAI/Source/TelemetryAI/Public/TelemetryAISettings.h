@@ -76,5 +76,20 @@ public:
     UPROPERTY(EditAnywhere, config, Category = "TelemetryAI")
     FString SpoolPath = "";
 
+    UPROPERTY(VisibleAnywhere, config, Category = "TelemetryAI|Schema")
+    int32 ActiveSchemaVersion = 0;
+
+    UPROPERTY(VisibleAnywhere, config, Category = "TelemetryAI|Schema")
+    TArray<FString> ActiveSchemaEventNames;
+
+    UPROPERTY(VisibleAnywhere, config, Category = "TelemetryAI|Schema", meta = (MultiLine = "true"))
+    FString GeneratedEventHeaderPreview;
+
+    UPROPERTY(VisibleAnywhere, config, Category = "TelemetryAI|Schema")
+    FString LastSchemaSyncAt;
+
+    UPROPERTY(VisibleAnywhere, config, Category = "TelemetryAI|Schema")
+    FString LastSchemaSyncError;
+
     FTelemetryAIConfig ToConfig() const;
 };

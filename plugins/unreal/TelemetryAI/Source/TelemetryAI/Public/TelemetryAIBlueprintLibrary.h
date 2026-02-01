@@ -2,6 +2,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "TelemetryAISettings.h"
+#include "TelemetryAIEventNames.h"
 #include "TelemetryAIBlueprintLibrary.generated.h"
 
 UCLASS()
@@ -28,6 +29,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "TelemetryAI")
     static void TrackEventSimple(const FString& EventName, const TMap<FString, FString>& Properties);
 
+    UFUNCTION(BlueprintCallable, Category = "TelemetryAI", meta = (DisplayName = "Track Event (Enum)"))
+    static void TrackEventEnum(ETelemetryAIEventName EventName);
+
+    UFUNCTION(BlueprintCallable, Category = "TelemetryAI", meta = (DisplayName = "Track Event Json (Enum)"))
+    static void TrackEventEnumJson(ETelemetryAIEventName EventName, const FString& PropertiesJson);
+
     UFUNCTION(BlueprintCallable, Category = "TelemetryAI")
     static void Flush();
 
@@ -36,4 +43,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "TelemetryAI")
     static void SetSessionId(const FString& SessionId);
+
+    UFUNCTION(BlueprintCallable, Category = "TelemetryAI|Schema")
+    static bool SyncSchema(bool bWriteHeader);
 };

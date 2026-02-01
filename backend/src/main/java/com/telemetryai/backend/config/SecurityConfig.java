@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/v1/auth/login", "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/events/batch").permitAll()
+                .requestMatchers(HttpMethod.GET, "/v1/schema/current").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
