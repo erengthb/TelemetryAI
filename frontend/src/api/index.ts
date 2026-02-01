@@ -2,10 +2,12 @@ import { request } from "./client";
 import {
   ApiKeyCreateResponse,
   ApiKeyResponse,
+  CreateOrgRequest,
   CreateProjectRequest,
   DashboardFunnelResponse,
   DashboardOverviewResponse,
   EnvironmentResponse,
+  EventListResponse,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -25,6 +27,11 @@ export const api = {
   me: () => request<MeResponse>("/v1/auth/me"),
 
   listOrgs: () => request<OrgResponse[]>("/v1/orgs"),
+  createOrg: (payload: CreateOrgRequest) =>
+    request<OrgResponse>("/v1/orgs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   listProjects: () => request<ProjectResponse[]>("/v1/projects"),
   createProject: (payload: CreateProjectRequest) =>
     request<ProjectResponse>("/v1/projects", {
@@ -70,6 +77,11 @@ export const api = {
 
   listQuarantine: (projectId: string, envName: string, range?: string) =>
     request<QuarantineListResponse>(`/v1/projects/${projectId}/quarantine`, {
+      query: { env: envName, range },
+    }),
+
+  listEvents: (projectId: string, envName: string, range?: string) =>
+    request<EventListResponse>(`/v1/projects/${projectId}/events`, {
       query: { env: envName, range },
     }),
 

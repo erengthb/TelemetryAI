@@ -3,6 +3,7 @@ import Icon, { type IconName } from "./Icon";
 
 const navItems: { to: string; label: string; icon: IconName }[] = [
   { to: "/", label: "Genel", icon: "dashboard" },
+  { to: "/events", label: "Olaylar", icon: "events" },
   { to: "/projects", label: "Projeler", icon: "projects" },
   { to: "/api-keys", label: "Anahtarlar", icon: "api-keys" },
   { to: "/quarantine", label: "Risk", icon: "quarantine" },

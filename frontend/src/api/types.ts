@@ -23,6 +23,10 @@ export type OrgResponse = {
   createdAt: string;
 };
 
+export type CreateOrgRequest = {
+  name: string;
+};
+
 export type ProjectResponse = {
   id: string;
   orgId: string;
@@ -104,6 +108,26 @@ export type QuarantineItemResponse = {
 
 export type QuarantineListResponse = {
   items: QuarantineItemResponse[];
+};
+
+export type EventItemResponse = {
+  id: number;
+  envName: string;
+  eventId: string | null;
+  eventName: string;
+  eventDescription: string | null;
+  tsClient: string;
+  tsServer: string;
+  playerId: string;
+  sessionId: string;
+  buildVersion: string | null;
+  platform: string | null;
+  device: unknown;
+  properties: unknown;
+};
+
+export type EventListResponse = {
+  items: EventItemResponse[];
 };
 
 export type AiReportJson = Record<string, unknown>;

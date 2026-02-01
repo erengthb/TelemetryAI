@@ -4,6 +4,7 @@ import RequireAuth from "./components/RequireAuth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
+import Events from "./pages/Events";
 import ApiKeys from "./pages/ApiKeys";
 import Schema from "./pages/Schema";
 import Quarantine from "./pages/Quarantine";
@@ -25,6 +26,7 @@ export default function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="projects" element={<Projects />} />
+        <Route path="events" element={<Events />} />
         <Route path="api-keys" element={<ApiKeys />} />
         <Route path="schema" element={<Schema />} />
         <Route path="quarantine" element={<Quarantine />} />

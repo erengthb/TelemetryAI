@@ -11,6 +11,8 @@ export default function Projects() {
   const [orgs, setOrgs] = useState<OrgResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [orgError, setOrgError] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState("");
   const [projectName, setProjectName] = useState("");
   const [orgId, setOrgId] = useState("");
   const navigate = useNavigate();
@@ -65,6 +67,22 @@ export default function Projects() {
     }
   };
 
+  const handleCreateOrg = async () => {
+    if (!orgName.trim()) {
+      setOrgError("Org adi gerekli.");
+      return;
+    }
+    setOrgError(null);
+    try {
+      const created = await api.createOrg({ name: orgName.trim() });
+      setOrgs((prev) => [created, ...prev]);
+      setOrgId(created.id);
+      setOrgName("");
+    } catch (err) {
+      setOrgError("Org olusturulamadi.");
+    }
+  };
+
   const handleDetails = (projectId: string) => {
     saveProjectId(projectId);
     navigate("/");
@@ -82,16 +100,39 @@ export default function Projects() {
         </button>
       </div>
       <div className="card">
+        <div className="card-title">Org olustur</div>
+        <div className="form-stack">
+          <label>
+            Org adi
+            <input
+              type="text"
+              placeholder="ornek: nova-studio"
+              value={orgName}
+              onChange={(event) => setOrgName(event.target.value)}
+            />
+          </label>
+          <button className="btn primary" onClick={handleCreateOrg}>
+            Org olustur
+          </button>
+          {orgError ? <div className="helper">{orgError}</div> : null}
+        </div>
+      </div>
+
+      <div className="card">
         <div className="card-title">Proje olustur</div>
         <div className="form-stack">
           <label>
             Org
             <select value={orgId} onChange={(event) => setOrgId(event.target.value)}>
-              {orgs.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {org.name}
-                </option>
-              ))}
+              {orgs.length === 0 ? (
+                <option value="">Org yok</option>
+              ) : (
+                orgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))
+              )}
             </select>
           </label>
           <label>

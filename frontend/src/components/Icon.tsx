@@ -2,6 +2,7 @@ export type IconName =
   | "dashboard"
   | "projects"
   | "api-keys"
+  | "events"
   | "schema"
   | "quarantine"
   | "reports"
@@ -42,6 +43,15 @@ export default function Icon({ name, className }: IconProps) {
         <svg className={classes} viewBox="0 0 24 24">
           <path d="M7 14a4 4 0 1 1 4-4" />
           <path d="M11 10h10l-2 2 2 2-2 2 2 2H11z" />
+        </svg>
+      );
+    case "events":
+      return (
+        <svg className={classes} viewBox="0 0 24 24">
+          <path d="M4 6h16" />
+          <path d="M4 12h16" />
+          <path d="M4 18h10" />
+          <circle cx="19" cy="18" r="1.5" />
         </svg>
       );
     case "schema":
