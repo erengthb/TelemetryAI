@@ -12,6 +12,7 @@
 #include "Containers/Ticker.h"
 #include "Misc/EngineVersion.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
+#include "GenericPlatform/GenericPlatformProperties.h"
 #include "Async/Async.h"
 #include "Misc/Compression.h"
 
@@ -168,26 +169,26 @@ void FTelemetryAIClient::Flush()
     {
         TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
         TSharedPtr<FJsonObject> Client = MakeShared<FJsonObject>();
-        Client->SetStringField("sdk", "telemetryai-unreal");
-        Client->SetStringField("sdkVersion", "0.1.0");
-        Client->SetStringField("engine", "unreal");
-        Client->SetStringField("engineVersion", FEngineVersion::Current().ToString());
-        Client->SetStringField("buildVersion", Config.BuildVersion);
-        Client->SetStringField("platform", FPlatformMisc::GetPlatformName());
-        Root->SetObjectField("client", Client);
+        Client->SetStringField(TEXT("sdk"), TEXT("telemetryai-unreal"));
+        Client->SetStringField(TEXT("sdkVersion"), TEXT("0.1.0"));
+        Client->SetStringField(TEXT("engine"), TEXT("unreal"));
+        Client->SetStringField(TEXT("engineVersion"), FEngineVersion::Current().ToString());
+        Client->SetStringField(TEXT("buildVersion"), Config.BuildVersion);
+        Client->SetStringField(TEXT("platform"), ANSI_TO_TCHAR(FPlatformProperties::PlatformName()));
+        Root->SetObjectField(TEXT("client"), Client);
 
         TArray<TSharedPtr<FJsonValue>> Events;
         Events.Reserve(Batch.Num());
         for (const FTelemetryEvent& Event : Batch)
         {
             TSharedPtr<FJsonObject> EventObj = MakeShared<FJsonObject>();
-            EventObj->SetStringField("eventId", Event.EventId);
-            EventObj->SetNumberField("timestampClient", static_cast<double>(Event.TimestampClient));
-            EventObj->SetStringField("eventName", Event.EventName);
-            EventObj->SetStringField("sessionId", Event.SessionId);
+            EventObj->SetStringField(TEXT("eventId"), Event.EventId);
+            EventObj->SetNumberField(TEXT("timestampClient"), static_cast<double>(Event.TimestampClient));
+            EventObj->SetStringField(TEXT("eventName"), Event.EventName);
+            EventObj->SetStringField(TEXT("sessionId"), Event.SessionId);
             if (!Event.PlayerId.IsEmpty())
             {
-                EventObj->SetStringField("playerId", Event.PlayerId);
+                EventObj->SetStringField(TEXT("playerId"), Event.PlayerId);
             }
 
             if (!Event.PropertiesJson.IsEmpty())
@@ -196,13 +197,13 @@ void FTelemetryAIClient::Flush()
                 const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Event.PropertiesJson);
                 if (FJsonSerializer::Deserialize(Reader, Props) && Props.IsValid())
                 {
-                    EventObj->SetObjectField("properties", Props);
+                    EventObj->SetObjectField(TEXT("properties"), Props);
                 }
             }
 
             Events.Add(MakeShared<FJsonValueObject>(EventObj));
         }
-        Root->SetArrayField("events", Events);
+        Root->SetArrayField(TEXT("events"), Events);
 
         FString Body;
         TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
@@ -378,13 +379,13 @@ void FTelemetryAIClient::SendBatch(const TArray<FTelemetryEvent>& Batch, const F
 FString FTelemetryAIClient::SerializeEventJson(const FTelemetryEvent& Event) const
 {
     TSharedPtr<FJsonObject> EventObj = MakeShared<FJsonObject>();
-    EventObj->SetStringField("eventId", Event.EventId);
-    EventObj->SetNumberField("timestampClient", static_cast<double>(Event.TimestampClient));
-    EventObj->SetStringField("eventName", Event.EventName);
-    EventObj->SetStringField("sessionId", Event.SessionId);
+    EventObj->SetStringField(TEXT("eventId"), Event.EventId);
+    EventObj->SetNumberField(TEXT("timestampClient"), static_cast<double>(Event.TimestampClient));
+    EventObj->SetStringField(TEXT("eventName"), Event.EventName);
+    EventObj->SetStringField(TEXT("sessionId"), Event.SessionId);
     if (!Event.PlayerId.IsEmpty())
     {
-        EventObj->SetStringField("playerId", Event.PlayerId);
+        EventObj->SetStringField(TEXT("playerId"), Event.PlayerId);
     }
 
     if (!Event.PropertiesJson.IsEmpty())
@@ -393,7 +394,7 @@ FString FTelemetryAIClient::SerializeEventJson(const FTelemetryEvent& Event) con
         const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Event.PropertiesJson);
         if (FJsonSerializer::Deserialize(Reader, Props) && Props.IsValid())
         {
-            EventObj->SetObjectField("properties", Props);
+            EventObj->SetObjectField(TEXT("properties"), Props);
         }
     }
 
@@ -412,18 +413,18 @@ bool FTelemetryAIClient::ParseEventJson(const FString& Json, FTelemetryEvent& Ou
         return false;
     }
 
-    OutEvent.EventId = Obj->GetStringField("eventId");
-    OutEvent.TimestampClient = static_cast<int64>(Obj->GetNumberField("timestampClient"));
-    OutEvent.EventName = Obj->GetStringField("eventName");
-    OutEvent.SessionId = Obj->GetStringField("sessionId");
-    if (Obj->HasField("playerId"))
+    OutEvent.EventId = Obj->GetStringField(TEXT("eventId"));
+    OutEvent.TimestampClient = static_cast<int64>(Obj->GetNumberField(TEXT("timestampClient")));
+    OutEvent.EventName = Obj->GetStringField(TEXT("eventName"));
+    OutEvent.SessionId = Obj->GetStringField(TEXT("sessionId"));
+    if (Obj->HasField(TEXT("playerId")))
     {
-        OutEvent.PlayerId = Obj->GetStringField("playerId");
+        OutEvent.PlayerId = Obj->GetStringField(TEXT("playerId"));
     }
 
-    if (Obj->HasField("properties"))
+    if (Obj->HasField(TEXT("properties")))
     {
-        TSharedPtr<FJsonObject> Props = Obj->GetObjectField("properties");
+        TSharedPtr<FJsonObject> Props = Obj->GetObjectField(TEXT("properties"));
         if (Props.IsValid())
         {
             FString PropsJson;

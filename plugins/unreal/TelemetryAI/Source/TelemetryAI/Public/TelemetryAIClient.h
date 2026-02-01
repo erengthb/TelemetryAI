@@ -1,7 +1,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/Ticker.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "TelemetryAISettings.h"
+
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 7)
+using FTelemetryAITickerHandle = FTSTicker::FDelegateHandle;
+#else
+using FTelemetryAITickerHandle = FDelegateHandle;
+#endif
 
 struct FTelemetryEvent
 {
@@ -69,5 +77,5 @@ private:
     int32 CurrentSpoolLineCount = 0;
     TMap<FString, int32> SpoolRemaining;
 
-    FDelegateHandle TickerHandle;
+    FTelemetryAITickerHandle TickerHandle;
 };
