@@ -1,4 +1,4 @@
-package com.telemetryai.backend.ingestion;
+package com.telemetryai.backend.common;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

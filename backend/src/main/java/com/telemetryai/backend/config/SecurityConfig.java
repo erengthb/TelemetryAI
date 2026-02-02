@@ -1,5 +1,6 @@
 package com.telemetryai.backend.config;
 
+import com.telemetryai.backend.security.HttpsEnforcementFilter;
 import com.telemetryai.backend.security.JwtAuthenticationFilter;
 import com.telemetryai.backend.logging.RequestLoggingFilter;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            HttpsEnforcementFilter httpsEnforcementFilter,
             RequestLoggingFilter requestLoggingFilter
     ) throws Exception {
         http
@@ -39,6 +41,7 @@ public class SecurityConfig {
             )
             .httpBasic(Customizer.withDefaults());
 
+        http.addFilterBefore(httpsEnforcementFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(requestLoggingFilter, JwtAuthenticationFilter.class);
         return http.build();
@@ -54,9 +57,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Api-Key"));
         config.setExposedHeaders(List.of("Authorization"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

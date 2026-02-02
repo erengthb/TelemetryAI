@@ -1,13 +1,11 @@
-const TOKEN_KEY = "ta_token";
-
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return null;
 }
 
-export function setToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token);
+export function setToken() {
+  // Cookie-based auth; no-op.
 }
 
 export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  // Cookie-based auth; no-op.
 }

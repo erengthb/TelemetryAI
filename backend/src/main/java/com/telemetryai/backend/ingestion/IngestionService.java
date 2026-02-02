@@ -2,6 +2,7 @@ package com.telemetryai.backend.ingestion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.telemetryai.backend.common.RateLimiterService;
 import com.telemetryai.backend.apikey.ApiKeyEntity;
 import com.telemetryai.backend.apikey.ApiKeyRepository;
 import com.telemetryai.backend.apikey.ApiKeyUtil;

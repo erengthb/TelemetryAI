@@ -29,7 +29,7 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    public LoginResponse authenticate(LoginRequest request) {
+    public AuthResult authenticate(LoginRequest request) {
         UserEntity user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
@@ -44,7 +44,7 @@ public class AuthService {
 
         String role = resolveRole(memberships);
         String token = jwtService.generateToken(user.getId().toString(), user.getEmail(), role);
-        return new LoginResponse(token, user.getId().toString(), user.getEmail(), role);
+        return new AuthResult(token, user.getId().toString(), user.getEmail(), role);
     }
 
     private String resolveRole(List<OrgMemberEntity> memberships) {

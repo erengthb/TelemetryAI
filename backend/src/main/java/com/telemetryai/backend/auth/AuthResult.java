@@ -1,14 +1,20 @@
 package com.telemetryai.backend.auth;
 
-public class LoginResponse {
+public class AuthResult {
+    private final String token;
     private final String userId;
     private final String email;
     private final String role;
 
-    public LoginResponse(String userId, String email, String role) {
+    public AuthResult(String token, String userId, String email, String role) {
+        this.token = token;
         this.userId = userId;
         this.email = email;
         this.role = role;
+    }
+
+    public String getToken() {
+        return token;
     }
 
     public String getUserId() {

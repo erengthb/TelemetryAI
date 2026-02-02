@@ -7,8 +7,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HexFormat;
 import java.util.UUID;
 
 @Service
@@ -30,8 +33,8 @@ public class RequestLogService {
         entity.setStatus(response.getStatus());
         entity.setDurationMs((int) Math.min(Integer.MAX_VALUE, durationMs));
         entity.setUserId(resolveUserId());
-        entity.setIp(safe(resolveIp(request)));
-        entity.setUserAgent(safe(request.getHeader("User-Agent")));
+        entity.setIp(safe(maskIp(resolveIp(request))));
+        entity.setUserAgent(safe(hashUserAgent(request.getHeader("User-Agent"))));
         if (error != null) {
             String message = error.getMessage();
             String errorText = error.getClass().getSimpleName() + (message == null ? "" : ": " + message);
@@ -58,6 +61,41 @@ public class RequestLogService {
             return forwarded.split(",")[0].trim();
         }
         return request.getRemoteAddr();
+    }
+
+    private String maskIp(String ip) {
+        if (ip == null || ip.isBlank()) {
+            return null;
+        }
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            byte[] bytes = address.getAddress();
+            if (bytes.length == 4) {
+                bytes[3] = 0;
+                return InetAddress.getByAddress(bytes).getHostAddress();
+            }
+            if (bytes.length == 16) {
+                for (int i = 6; i < 16; i++) {
+                    bytes[i] = 0;
+                }
+                return InetAddress.getByAddress(bytes).getHostAddress();
+            }
+        } catch (Exception ignored) {
+        }
+        return ip;
+    }
+
+    private String hashUserAgent(String userAgent) {
+        if (userAgent == null || userAgent.isBlank()) {
+            return null;
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashed = digest.digest(userAgent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return "sha256:" + HexFormat.of().formatHex(hashed);
+        } catch (Exception ignored) {
+            return "sha256:unknown";
+        }
     }
 
     private String safe(String value) {

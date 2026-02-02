@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
-import { getToken, setToken } from "../api/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,17 +10,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (getToken()) {
-      navigate("/", { replace: true });
-    }
+    let active = true;
+    api
+      .me()
+      .then(() => {
+        if (active) {
+          navigate("/", { replace: true });
+        }
+      })
+      .catch(() => {
+        // Not authenticated yet.
+      });
+    return () => {
+      active = false;
+    };
   }, [navigate]);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.login({ email, password });
-      setToken(response.token);
+      await api.login({ email, password });
       navigate("/");
     } catch (err) {
       setError("Giris basarisiz. Bilgileri kontrol et.");

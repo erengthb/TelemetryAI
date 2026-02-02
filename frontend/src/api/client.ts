@@ -1,5 +1,3 @@
-import { clearToken, getToken } from "./auth";
-
 type QueryValue = string | number | boolean | null | undefined;
 
 export class ApiError extends Error {
@@ -35,15 +33,14 @@ export async function request<T>(
   path: string,
   options: RequestInit & { query?: Record<string, QueryValue>; auth?: boolean } = {}
 ) {
-  const { query, auth = true, headers, ...rest } = options;
+  const { query, auth: _auth, headers, ...rest } = options;
   const url = `${BASE_URL}${path}${buildQuery(query)}`;
-  const token = auth ? getToken() : null;
 
   const response = await fetch(url, {
     ...rest,
+    credentials: "include",
     headers: {
       ...(headers ?? {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(rest.body ? { "Content-Type": "application/json" } : {}),
     },
   });
@@ -58,7 +55,6 @@ export async function request<T>(
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      clearToken();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }

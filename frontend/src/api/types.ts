@@ -4,7 +4,6 @@ export type LoginRequest = {
 };
 
 export type LoginResponse = {
-  token: string;
   userId: string;
   email: string;
   role: string;
